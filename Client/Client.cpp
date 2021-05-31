@@ -60,18 +60,17 @@ bool Client::TryServerLogin(const User& user) const
     ServerReq req = ServerReq::Login;
     string request = user.name + ' ' + user.password; // creating Login request
     char requestBuf[127];
-    char buff[1];
-    TamaTypes type;
+    int login_result;
     strcpy(requestBuf, request.c_str());
     
-    send(_sockfd, &req, 4ul, 0);
-    send(_sockfd, &requestBuf, 127ul, 0); // sending request
-    sleep(2);
-    while (recv(_sockfd, buff, 127ul, 0) <= 0);
+    send(_sockfd, &req, sizeof(req), 0);
+    send(_sockfd, requestBuf, strlen(requestBuf) * sizeof(char), 0); // sending request
+    recv(_sockfd, &login_result, 4ul, 0);
 
-    if (buff[0] == 'F') return false;
+    if (login_result == 0) return false;
 
-    recv(_sockfd, &type, 4ul, 0);
+    TamaTypes type;
+    recv(_sockfd, &type, sizeof(type), 0);
     tamagWindow->SetTamaType(type);
 
     pthread_t tamStatChangeThr;
@@ -86,9 +85,9 @@ void Client::ServerRegister(const User& user, const string& tamaName, const Tama
     char buf[128];
     strcpy(buf, request.c_str());
 
-    send(_sockfd, &req, sizeof(&req), 0);
-    send(_sockfd, buf, 127, 0); // sending request
-    send(_sockfd, &type, sizeof(&type), 0); // sending tamType
+    send(_sockfd, &req, sizeof(req), 0);
+    send(_sockfd, buf, strlen(buf) * sizeof(char), 0); // sending request
+    send(_sockfd, &type, sizeof(type), 0); // sending tamType
     tamagWindow->SetTamaType(type);
     
     pthread_t tamStatChangeThr;
@@ -117,13 +116,13 @@ void* GetTamagStatChangeThread(void* arg)
 {
     Client* client = static_cast<Client*>(arg);
     int sock = client->GetSockFd();
-    double* stats = new double[STATS_CNT];
+    size_t size = STATS_CNT * sizeof(double);
     while (true)
     {
-        if (recv(sock, stats, 127ul, 0) <= 0) continue;
+        double stats[STATS_CNT];
+        if (recv(sock, stats, size, 0) <= 0) continue;
 
         client->HandleTamStats(stats);
-        memset(stats, 0, 5ul);
         printf("\n");
     }
 }

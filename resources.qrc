@@ -1,37 +1,38 @@
 <RCC>
     <qresource prefix="/images/cat">
-        <file>images/cat/Cure.png</file>
-        <file>images/cat/Depressed.png</file>
-        <file>images/cat/Eating.png</file>
-        <file>images/cat/Happy.png</file>
-        <file>images/cat/Normal.png</file>
-        <file>images/cat/Pissing.png</file>
-        <file>images/cat/Sad.png</file>
-        <file>images/cat/Sleeping.png</file>
-        <file>images/cat/Walking.png</file>
+        <file alias="Cure.png">images/cat/Cure.png</file>
+        <file alias="Depressed.png">images/cat/Depressed.png</file>
+        <file alias="Eating.png">images/cat/Eating.png</file>
+        <file alias="Happy.png">images/cat/Happy.png</file>
+        <file alias="Normal.png">images/cat/Normal.png</file>
+        <file alias="Pissing.png">images/cat/Pissing.png</file>
+        <file alias="Sad.png">images/cat/Sad.png</file>
+        <file alias="Sleeping.png">images/cat/Sleeping.png</file>
+        <file alias="Walking.png">images/cat/Walking.png</file>
+        <file alias="Died.png">images/cat/Died.png</file>
     </qresource>
     <qresource prefix="/images/zukutchi">
-        <file>images/zukutchi/Cure.png</file>
-        <file>images/zukutchi/Depressed.png</file>
-        <file>images/zukutchi/Died.png</file>
-        <file>images/zukutchi/Eating.png</file>
-        <file>images/zukutchi/Happy.png</file>
-        <file>images/zukutchi/Normal.png</file>
-        <file>images/zukutchi/Pissing.png</file>
-        <file>images/zukutchi/Sad.png</file>
-        <file>images/zukutchi/Sleeping.png</file>
-        <file>images/zukutchi/Walking.png</file>
+        <file alias="Cure.png">images/zukutchi/Cure.png</file>
+        <file alias="Depressed.png">images/zukutchi/Depressed.png</file>
+        <file alias="Died.png">images/zukutchi/Died.png</file>
+        <file alias="Eating.png">images/zukutchi/Eating.png</file>
+        <file alias="Happy.png">images/zukutchi/Happy.png</file>
+        <file alias="Normal.png">images/zukutchi/Normal.png</file>
+        <file alias="Pissing.png">images/zukutchi/Pissing.png</file>
+        <file alias="Sad.png">images/zukutchi/Sad.png</file>
+        <file alias="Sleeping.png">images/zukutchi/Sleeping.png</file>
+        <file alias="Walking.png">images/zukutchi/Walking.png</file>
     </qresource>
     <qresource prefix="/images/sekitoritchi">
-        <file>images/sekitoritchi/Cure.png</file>
-        <file>images/sekitoritchi/Depressed.png</file>
-        <file>images/sekitoritchi/Died.png</file>
-        <file>images/sekitoritchi/Eating.png</file>
-        <file>images/sekitoritchi/Happy.png</file>
-        <file>images/sekitoritchi/Normal.png</file>
-        <file>images/sekitoritchi/Pissing.png</file>
-        <file>images/sekitoritchi/Sad.png</file>
-        <file>images/sekitoritchi/Sleeping.png</file>
-        <file>images/sekitoritchi/Walking.png</file>
+        <file alias="Cure.png">images/sekitoritchi/Cure.png</file>
+        <file alias="Depressed.png">images/sekitoritchi/Depressed.png</file>
+        <file alias="Died.png">images/sekitoritchi/Died.png</file>
+        <file alias="Eating.png">images/sekitoritchi/Eating.png</file>
+        <file alias="Happy.png">images/sekitoritchi/Happy.png</file>
+        <file alias="Normal.png">images/sekitoritchi/Normal.png</file>
+        <file alias="Pissing.png">images/sekitoritchi/Pissing.png</file>
+        <file alias="Sad.png">images/sekitoritchi/Sad.png</file>
+        <file alias="Sleeping.png">images/sekitoritchi/Sleeping.png</file>
+        <file alias="Walking.png">images/sekitoritchi/Walking.png</file>
     </qresource>
 </RCC>

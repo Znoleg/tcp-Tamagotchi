@@ -84,7 +84,6 @@ Server* Server::GetInstance()
 	return _instance;
 }
 
-
 void Server::Register(const User& owner, const string tamaName, const TamaTypes tamType, const int client_fd)
 {
 	Tamagochi* tamag = GetTamagochiUsingType(tamaName, tamType);
@@ -105,7 +104,7 @@ bool Server::TryLogin(const User& user, const int client_fd, double*& stats)
 	toLogin.clientFd = client_fd;
 
     TamaTypes type = toLogin.tamag.GetType();
-    send(client_fd, &type, 4ul, 0);
+    send(client_fd, &type, sizeof(type), 0);
 	stats = toLogin.tamag.GetStats();
 	toLogin.logged = true;
 	return true;
@@ -114,7 +113,8 @@ bool Server::TryLogin(const User& user, const int client_fd, double*& stats)
 void Server::SendStats(const ClientData& client) const
 {
 	double* stats = client.tamag.GetStats();
-	send(client.clientFd, stats, 127ul, 0);
+	size_t size = client.tamag.GetStatsCount() * sizeof(double);
+	send(client.clientFd, stats, size, 0);
 	printf("Sended stats to %i client \n", client.clientFd);
 }
 
@@ -222,27 +222,22 @@ void* HandleClientReqs(void* clientFdPtr)
 		{
 			char requestStr[128];
 			while (recv(clientFd, requestStr, 127, 0) <= 0);
-			printf("Request %s\n", requestStr);
+			printf("Got request from %i user: %s\n", clientFd, requestStr);
 			vector<string> splitedReq = SplitString(requestStr, " ");
 			User user{splitedReq[0], splitedReq[1]};
 			
 			if (request == ServerReq::Login)
 			{
 				double* stats = new double[5];
-				bool result = server->TryLogin(user, clientFd, stats); 
-                if (!result) 
+				int result = server->TryLogin(user, clientFd, stats); 
+				send(clientFd, &result, 4ul, 0);
+				
+				if (result) 
 				{
-					char r = 'F';
-					send(clientFd, &r, 127ul, 0);
-				}
-				else 
-				{
-					char r = 'T';
-					send(clientFd, &r, 127ul, 0);
 					bool res;
  					ClientData client = server->TryFindUser(user, res);
-					auto type = client.tamag.GetType();
-					send(clientFd, &type, 4ul, 0);
+					TamaTypes type = client.tamag.GetType();
+					send(clientFd, &type, sizeof(type), 0);
 					server->SendStats(client);
 				}
 			}

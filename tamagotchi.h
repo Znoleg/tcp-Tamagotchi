@@ -29,7 +29,7 @@ public:
 private:
     Ui::Tamagotchi *ui;
     Client* _client;
-    QString* _tamaResourcePath;
+    QString _tamaResourcePath;
 
     QFrame* loginFrame, *registerFrame, *playFrame;
     QLabel* logWarningLabel, *healthCnt, *hungerCnt, *hapinessCnt, *pissCnt, *sleepCnt, *tamagImage;

@@ -224,7 +224,7 @@ p, li { white-space: pre-wrap; }
       <string/>
      </property>
      <property name="pixmap">
-      <pixmap resource="resources.qrc">:/images/cat/images/cat/Walking.png</pixmap>
+      <pixmap resource="resources.qrc">:/images/cat/Walking.png</pixmap>
      </property>
      <property name="scaledContents">
       <bool>true</bool>
@@ -303,7 +303,7 @@ p, li { white-space: pre-wrap; }
       <string/>
      </property>
      <property name="pixmap">
-      <pixmap resource="resources.qrc">:/images/zukutchi/images/zukutchi/Happy.png</pixmap>
+      <pixmap resource="resources.qrc">:/images/zukutchi/Happy.png</pixmap>
      </property>
      <property name="scaledContents">
       <bool>true</bool>
@@ -380,7 +380,7 @@ p, li { white-space: pre-wrap; }
       <string/>
      </property>
      <property name="pixmap">
-      <pixmap resource="resources.qrc">:/images/sekitoritchi/images/sekitoritchi/Normal.png</pixmap>
+      <pixmap resource="resources.qrc">:/images/sekitoritchi/Normal.png</pixmap>
      </property>
      <property name="scaledContents">
       <bool>true</bool>
@@ -497,7 +497,7 @@ p, li { white-space: pre-wrap; }
       <string/>
      </property>
      <property name="pixmap">
-      <pixmap resource="resources.qrc">:/images/cat/images/cat/Walking.png</pixmap>
+      <pixmap>:/images/cat/images/cat/Walking.png</pixmap>
      </property>
      <property name="scaledContents">
       <bool>true</bool>

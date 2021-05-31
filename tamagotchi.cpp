@@ -87,37 +87,37 @@ void Tamagotchi::SetTamaPicture(TamaFeelLevel& level)
     switch (level)
     {
     case TamaFeelLevel::Died:
-        path = *_tamaResourcePath + "Died.png";
+        path = _tamaResourcePath + "Died.png";
         break;
 
     case TamaFeelLevel::Worst:
-        path = *_tamaResourcePath + "Depressed.png";
+        path = _tamaResourcePath + "Depressed.png";
         break;
 
     case TamaFeelLevel::Bad:
-        path = *_tamaResourcePath + "Sad.png";
+        path = _tamaResourcePath + "Sad.png";
         break;
 
     case TamaFeelLevel::Ok:
-        path = *_tamaResourcePath + "Normal.png";
+        path = _tamaResourcePath + "Normal.png";
         break;
 
     case TamaFeelLevel::Good:
-        path = *_tamaResourcePath + "Happy.png";
+        path = _tamaResourcePath + "Happy.png";
         break;
 
     default:
         break;
     }
 
-    QPixmap pixmap(":/images/cat/");
+    QPixmap pixmap(path);
     tamagImage->setPixmap(pixmap);
 }
 
 void Tamagotchi::SetTamaPicture(QString path, bool usingResourcePath)
 {
     QString finalPath;
-    if (usingResourcePath) finalPath = *_tamaResourcePath + path;
+    if (usingResourcePath) finalPath = _tamaResourcePath + path;
     else finalPath = path;
 
     QPixmap image(finalPath);
@@ -131,7 +131,7 @@ void Tamagotchi::UpdateStatLables(double health, double hunger, double hapiness,
     {
 
     }
-    SetTamaPicture(":/images/cat/Happy.png", false);
+    SetTamaPicture(level);
 
     SetStat(health, healthCnt);
     SetStat(hunger, hungerCnt);
@@ -145,13 +145,13 @@ void Tamagotchi::SetTamaType(const TamaTypes type)
     switch (type)
     {
         case TamaTypes::Cat:
-            _tamaResourcePath = new QString(":/images/cat/");
+            _tamaResourcePath = ":/images/cat/";
             break;
         case TamaTypes::Hedgehog:
-            _tamaResourcePath = new QString(":/images/zukutchi/");
+            _tamaResourcePath = ":/images/zukutchi/";
             break;
         case TamaTypes::Penguin:
-            _tamaResourcePath = new QString(":/images/sekitoritchi/");
+            _tamaResourcePath = ":/images/sekitoritchi/";
             break;
 
         default: break;
