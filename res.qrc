@@ -1,0 +1,13 @@
+<RCC>
+	<qresource prefix="/images/cat">
+			<file>Happy.png</file>
+			<file>images/cat/Normal.png</file>
+			<file>cat/Sad.png</file>
+			<file>/images/cat/Depressed.png</file>
+			<file>/images/cat/Cure.png</file>
+			<file>/images/cat/Eating.png</file>
+			<file>/images/cat/Walking.png</file>
+			<file>/images/cat/Sleeping.png</file>
+			<file>/images/cat/Pissing.png</file>
+	</qresource>
+</RCC>

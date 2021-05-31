@@ -1,0 +1,37 @@
+<RCC>
+    <qresource prefix="/images/cat">
+        <file>images/cat/Cure.png</file>
+        <file>images/cat/Depressed.png</file>
+        <file>images/cat/Eating.png</file>
+        <file>images/cat/Happy.png</file>
+        <file>images/cat/Normal.png</file>
+        <file>images/cat/Pissing.png</file>
+        <file>images/cat/Sad.png</file>
+        <file>images/cat/Sleeping.png</file>
+        <file>images/cat/Walking.png</file>
+    </qresource>
+    <qresource prefix="/images/zukutchi">
+        <file>images/zukutchi/Cure.png</file>
+        <file>images/zukutchi/Depressed.png</file>
+        <file>images/zukutchi/Died.png</file>
+        <file>images/zukutchi/Eating.png</file>
+        <file>images/zukutchi/Happy.png</file>
+        <file>images/zukutchi/Normal.png</file>
+        <file>images/zukutchi/Pissing.png</file>
+        <file>images/zukutchi/Sad.png</file>
+        <file>images/zukutchi/Sleeping.png</file>
+        <file>images/zukutchi/Walking.png</file>
+    </qresource>
+    <qresource prefix="/images/sekitoritchi">
+        <file>images/sekitoritchi/Cure.png</file>
+        <file>images/sekitoritchi/Depressed.png</file>
+        <file>images/sekitoritchi/Died.png</file>
+        <file>images/sekitoritchi/Eating.png</file>
+        <file>images/sekitoritchi/Happy.png</file>
+        <file>images/sekitoritchi/Normal.png</file>
+        <file>images/sekitoritchi/Pissing.png</file>
+        <file>images/sekitoritchi/Sad.png</file>
+        <file>images/sekitoritchi/Sleeping.png</file>
+        <file>images/sekitoritchi/Walking.png</file>
+    </qresource>
+</RCC>
