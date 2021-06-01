@@ -33,7 +33,7 @@ private:
 
     QFrame* loginFrame, *registerFrame, *playFrame;
     QLabel* logWarningLabel, *healthCnt, *hungerCnt, *hapinessCnt, *pissCnt, *sleepCnt, *tamagImage;
-    QPushButton* loginBtn, *regBtn, *mamCrBtn, *zucCrBtn, *sekCrBtn, *cureBtn, *feedBtn, *walkBtn, *pissBtn, *sleepBtn;
+    QPushButton* loginBtn, *regBtn, *mamCrBtn, *zucCrBtn, *sekCrBtn, *cureBtn, *feedBtn, *playBtn, *pissBtn, *sleepBtn;
     QLineEdit* loginField, *passField, *tamaNameField;
 
     void LogWarning(const QString& text);
@@ -45,5 +45,12 @@ private slots:
     void SetRegisterCache();
     void Register(TamaTypes type);
     void SetStat(const double statValue, QLabel* label);
+
+    void ChooseFood();
+    void TamagFeed(FoodType type) const;
+    void TamagCure() const;
+    void TamagSleep() const;
+    void TamagPlay() const;
+    void TamagPiss() const;
 };
 #endif // TAMAGOTCHI_H

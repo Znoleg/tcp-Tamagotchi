@@ -55,19 +55,19 @@ sockaddr_in Client::ConnectToServer(in_port_t port, hostent* server)
     return serv_addr;
 }
 
-bool Client::TryServerLogin(const User& user) const
+bool Client::TryServerLogin(const User& user)
 {
     ServerReq req = ServerReq::Login;
-    string request = user.name + ' ' + user.password; // creating Login request
+    string request = user.GetCredinals(); // creating Login request
     char requestBuf[127];
-    int login_result;
+    bool login_result;
     strcpy(requestBuf, request.c_str());
     
-    send(_sockfd, &req, sizeof(req), 0);
+    send(_sockfd, &req, sizeof(ServerReq), 0);
     send(_sockfd, requestBuf, strlen(requestBuf) * sizeof(char), 0); // sending request
-    recv(_sockfd, &login_result, 4ul, 0);
+    recv(_sockfd, &login_result, sizeof(bool), 0);
 
-    if (login_result == 0) return false;
+    if (!login_result) return false;
 
     TamaTypes type;
     recv(_sockfd, &type, sizeof(type), 0);
@@ -75,36 +75,69 @@ bool Client::TryServerLogin(const User& user) const
 
     pthread_t tamStatChangeThr;
     pthread_create(&tamStatChangeThr, NULL, GetTamagStatChangeThread, (void**)this);
+    _currentUser = user;
     return true;
 }
 
 void Client::ServerRegister(const User& user, const string& tamaName, const TamaTypes type)
 {
     ServerReq req = ServerReq::Register;
-    string request = user.name + " " + user.password + " " + tamaName; // creating Register request
+    string request = user.GetCredinals() + ' ' + tamaName; // creating Register request
     char buf[128];
     strcpy(buf, request.c_str());
 
-    send(_sockfd, &req, sizeof(req), 0);
+    send(_sockfd, &req, sizeof(ServerReq), 0);
     send(_sockfd, buf, strlen(buf) * sizeof(char), 0); // sending request
-    send(_sockfd, &type, sizeof(type), 0); // sending tamType
+    sleep(1);
+    send(_sockfd, &type, sizeof(TamaTypes), 0); // sending tamType
     tamagWindow->SetTamaType(type);
     
     pthread_t tamStatChangeThr;
     pthread_create(&tamStatChangeThr, NULL, GetTamagStatChangeThread, (void**)this);
+    _currentUser = user;
 }
 
-void Client::SendTamRequest(const ServerReq req) const
+void Client::SendUserCredinals() const
 {
-    if (req != ServerReq::TamagCure && req != ServerReq::TamagEat && req != ServerReq::TamagPiss && req != ServerReq::TamagPlay && req != ServerReq::TamagSleep)
-        return;
+    string credinals = _currentUser.GetCredinals();
+    char buff[credinals.size()];
+    strcpy(buff, credinals.c_str());
 
-    send(_sockfd, &req, 1, 0);
-    
-    char reqstr[128];
-    recv(_sockfd, reqstr, 127, 0); // getting statst
-    vector<double> stats = SplitStringToNumbers(reqstr, " ");
-    printf("");
+    send(_sockfd, buff, strlen(buff) * sizeof(char), 0);
+}
+
+void Client::SendCureRequest() const
+{
+    ServerReq req = ServerReq::TamagCure;
+    send(_sockfd, &req, sizeof(ServerReq), 0);
+    SendUserCredinals();
+}
+
+void Client::SendEatRequest(FoodType type) const
+{
+    ServerReq req = ServerReq::TamagEat;
+    send(_sockfd, &req, sizeof(ServerReq), 0);
+    SendUserCredinals();
+    send(_sockfd, &type, sizeof(FoodType), 0);
+}
+
+void Client::SendSleepRequest() const
+{
+    ServerReq req = ServerReq::TamagSleep;
+    send(_sockfd, &req, sizeof(ServerReq), 0);
+    SendUserCredinals();
+}
+
+void Client::SendPlayRequest() const
+{
+    send(_sockfd, (void*)ServerReq::TamagPlay, sizeof(ServerReq), 0);
+    SendUserCredinals();
+}
+
+void Client::SendPissRequest() const
+{
+    send(_sockfd, (void*)ServerReq::TamagPiss, sizeof(ServerReq), 0);
+    SendUserCredinals();
 }
 
 void Client::HandleTamStats(const double* stats) const
@@ -123,13 +156,12 @@ void* GetTamagStatChangeThread(void* arg)
         if (recv(sock, stats, size, 0) <= 0) continue;
 
         client->HandleTamStats(stats);
-        printf("\n");
     }
 }
 
 int main(int argc, char* argv[])
 {
-    int portno;
+    in_port_t portno;
     hostent *server;
     if (argc >= 3) // Hostname & portno provided as args
     {
@@ -145,8 +177,8 @@ int main(int argc, char* argv[])
     }
 
     auto client = new Client();
-    int sockfd = client->CreateSocket();
-    sockaddr_in serv_addr = client->ConnectToServer(portno, server);
+    client->CreateSocket();
+    client->ConnectToServer(portno, server);
 
 
     QApplication a(argc, argv);

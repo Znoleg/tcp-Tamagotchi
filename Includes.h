@@ -31,10 +31,20 @@ enum class ServerReq
     Login, Register, TamagCure, TamagEat, TamagPlay, TamagSleep, TamagPiss
 };
 
+enum class FoodType
+{
+	Apple, Cucumber, Mushroom, Meat, Cheese, Cake, Fish, Ice
+};
+
 struct User
 {
 	string name;
 	string password;
+
+	string GetCredinals() const
+	{
+		return name + ' ' + password;
+	}
 
 	friend bool operator==(const User& user1, const User& user2)
 	{
@@ -46,13 +56,11 @@ struct User
 		os << user.name << ' ' << user.password;
 		return os;
 	}
-
 	friend istream& operator>>(istream& is, User& user)
 	{
 		is >> user.name >> user.password;
 		return is;
 	}
-
 	friend bool operator<(const User& user1, const User& user2)
 	{
 		return user1.name < user2.name;

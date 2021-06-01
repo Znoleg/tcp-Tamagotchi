@@ -59,7 +59,7 @@ bool Tamagochi::ChangeStatValues()
     return true;
 }
 
-void Tamagochi::FeedAnimal(Food food)
+void Tamagochi::FeedAnimal(FoodType food)
 {
     const double sleepDelta = -5;
     const double pissDelta = -10;
@@ -89,9 +89,10 @@ void Tamagochi::FeedAnimal(Food food)
     }
 }
 
-void Tamagochi::DoLifeIteration()
+void Tamagochi::DoLifeIteration(bool logged)
 {
-    const double delta = -1;
+    double delta = -0.02;
+    if (logged) delta = -1;
     ChangeStatValue(TamStats::Health, delta);
     ChangeStatValue(TamStats::Food, delta);
     ChangeStatValue(TamStats::Sleep, delta);
@@ -191,14 +192,14 @@ Penguin::Penguin(std::string name) : Tamagochi(name, 80)
 
 void Penguin::FillFoodPleasureMap()
 {
-    _foodPleasure->insert(pair<Food, Pleasure>(Food::Apple, Pleasure::OK));
-    _foodPleasure->insert(pair<Food, Pleasure>(Food::Cucumber, Pleasure::Bad));
-    _foodPleasure->insert(pair<Food, Pleasure>(Food::Mushroom, Pleasure::Bad));
-    _foodPleasure->insert(pair<Food, Pleasure>(Food::Meat, Pleasure::OK));
-    _foodPleasure->insert(pair<Food, Pleasure>(Food::Cheese, Pleasure::Bad));
-    _foodPleasure->insert(pair<Food, Pleasure>(Food::Cake, Pleasure::OK));
-    _foodPleasure->insert(pair<Food, Pleasure>(Food::Fish, Pleasure::Good));
-    _foodPleasure->insert(pair<Food, Pleasure>(Food::Ice, Pleasure::Good));
+    _foodPleasure->insert(pair<FoodType, Pleasure>(FoodType::Apple, Pleasure::OK));
+    _foodPleasure->insert(pair<FoodType, Pleasure>(FoodType::Cucumber, Pleasure::Bad));
+    _foodPleasure->insert(pair<FoodType, Pleasure>(FoodType::Mushroom, Pleasure::Bad));
+    _foodPleasure->insert(pair<FoodType, Pleasure>(FoodType::Meat, Pleasure::OK));
+    _foodPleasure->insert(pair<FoodType, Pleasure>(FoodType::Cheese, Pleasure::Bad));
+    _foodPleasure->insert(pair<FoodType, Pleasure>(FoodType::Cake, Pleasure::OK));
+    _foodPleasure->insert(pair<FoodType, Pleasure>(FoodType::Fish, Pleasure::Good));
+    _foodPleasure->insert(pair<FoodType, Pleasure>(FoodType::Ice, Pleasure::Good));
 }
 
 Cat::Cat(std::string name) : Tamagochi(name, 120.0)
@@ -208,14 +209,14 @@ Cat::Cat(std::string name) : Tamagochi(name, 120.0)
 
 void Cat::FillFoodPleasureMap()
 {
-    _foodPleasure->insert(pair<Food, Pleasure>(Food::Apple, Pleasure::OK));
-    _foodPleasure->insert(pair<Food, Pleasure>(Food::Cucumber, Pleasure::OK));
-    _foodPleasure->insert(pair<Food, Pleasure>(Food::Mushroom, Pleasure::OK));
-    _foodPleasure->insert(pair<Food, Pleasure>(Food::Meat, Pleasure::Good));
-    _foodPleasure->insert(pair<Food, Pleasure>(Food::Cheese, Pleasure::OK));
-    _foodPleasure->insert(pair<Food, Pleasure>(Food::Cake, Pleasure::Good));
-    _foodPleasure->insert(pair<Food, Pleasure>(Food::Fish, Pleasure::Good));
-    _foodPleasure->insert(pair<Food, Pleasure>(Food::Ice, Pleasure::Bad));
+    _foodPleasure->insert(pair<FoodType, Pleasure>(FoodType::Apple, Pleasure::OK));
+    _foodPleasure->insert(pair<FoodType, Pleasure>(FoodType::Cucumber, Pleasure::OK));
+    _foodPleasure->insert(pair<FoodType, Pleasure>(FoodType::Mushroom, Pleasure::OK));
+    _foodPleasure->insert(pair<FoodType, Pleasure>(FoodType::Meat, Pleasure::Good));
+    _foodPleasure->insert(pair<FoodType, Pleasure>(FoodType::Cheese, Pleasure::OK));
+    _foodPleasure->insert(pair<FoodType, Pleasure>(FoodType::Cake, Pleasure::Good));
+    _foodPleasure->insert(pair<FoodType, Pleasure>(FoodType::Fish, Pleasure::Good));
+    _foodPleasure->insert(pair<FoodType, Pleasure>(FoodType::Ice, Pleasure::Bad));
 }
 
 Hedgehog::Hedgehog(std::string name) : Tamagochi(name, 100.0)
@@ -225,12 +226,12 @@ Hedgehog::Hedgehog(std::string name) : Tamagochi(name, 100.0)
 
 void Hedgehog::FillFoodPleasureMap()
 {
-    _foodPleasure->insert(pair<Food, Pleasure>(Food::Apple, Pleasure::Good));
-    _foodPleasure->insert(pair<Food, Pleasure>(Food::Cucumber, Pleasure::OK));
-    _foodPleasure->insert(pair<Food, Pleasure>(Food::Mushroom, Pleasure::Good));
-    _foodPleasure->insert(pair<Food, Pleasure>(Food::Meat, Pleasure::Bad));
-    _foodPleasure->insert(pair<Food, Pleasure>(Food::Cheese, Pleasure::OK));
-    _foodPleasure->insert(pair<Food, Pleasure>(Food::Cake, Pleasure::OK));
-    _foodPleasure->insert(pair<Food, Pleasure>(Food::Fish, Pleasure::Bad));
-    _foodPleasure->insert(pair<Food, Pleasure>(Food::Ice, Pleasure::Bad));
+    _foodPleasure->insert(pair<FoodType, Pleasure>(FoodType::Apple, Pleasure::Good));
+    _foodPleasure->insert(pair<FoodType, Pleasure>(FoodType::Cucumber, Pleasure::OK));
+    _foodPleasure->insert(pair<FoodType, Pleasure>(FoodType::Mushroom, Pleasure::Good));
+    _foodPleasure->insert(pair<FoodType, Pleasure>(FoodType::Meat, Pleasure::Bad));
+    _foodPleasure->insert(pair<FoodType, Pleasure>(FoodType::Cheese, Pleasure::OK));
+    _foodPleasure->insert(pair<FoodType, Pleasure>(FoodType::Cake, Pleasure::OK));
+    _foodPleasure->insert(pair<FoodType, Pleasure>(FoodType::Fish, Pleasure::Bad));
+    _foodPleasure->insert(pair<FoodType, Pleasure>(FoodType::Ice, Pleasure::Bad));
 }

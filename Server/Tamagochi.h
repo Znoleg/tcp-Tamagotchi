@@ -4,12 +4,7 @@
 
 enum class TamStats
 {
-	Health, Food, Sleep, Piss, Hapiness
-};
-
-enum class Food
-{
-	Apple, Cucumber, Mushroom, Meat, Cheese, Cake, Fish, Ice
+	Health, Food, Hapiness, Piss, Sleep
 };
 
 enum class Pleasure
@@ -17,7 +12,7 @@ enum class Pleasure
 	Good, OK, Bad 
 };
 
-typedef pair<Food, Pleasure> FoodPleasure;
+typedef pair<FoodType, Pleasure> FoodPleasure;
 
 class TamagochiController
 {
@@ -25,8 +20,8 @@ class TamagochiController
 	void virtual SetStatValue(TamStats stat, double value) = 0;
 	bool virtual ChangeStatValue(TamStats stat, double delta) = 0;
 	bool virtual ChangeStatValues() = 0;
-	void virtual DoLifeIteration() = 0;
-	void virtual FeedAnimal(Food) = 0;
+	void virtual DoLifeIteration(bool logged) = 0;
+	void virtual FeedAnimal(FoodType type) = 0;
 	void virtual PlayWithAnimal() = 0;
 	void virtual CureAnimal() = 0;
 	void virtual SleepWithAnimal() = 0;
@@ -44,8 +39,8 @@ public:
 	void SetStatValue(TamStats stat, double value) override;
 	bool ChangeStatValue(TamStats stat, double delta) override;
 	bool ChangeStatValues() override;
-	void virtual DoLifeIteration() override;
-	void virtual FeedAnimal(Food) override;
+	void virtual DoLifeIteration(bool logged) override;
+	void virtual FeedAnimal(FoodType) override;
 	void virtual PlayWithAnimal() override;
 	void virtual CureAnimal() override;
 	void virtual SleepWithAnimal() override;
@@ -55,7 +50,7 @@ public:
 	friend ostream& operator<<(ostream& os, const Tamagochi& tama);
 	friend istream& operator>>(istream& is, Tamagochi& tama);
 protected:
-	map<Food, Pleasure>* _foodPleasure = new map<Food, Pleasure>();
+	map<FoodType, Pleasure>* _foodPleasure = new map<FoodType, Pleasure>();
 	void ConstructFoodPleasureMap(const FoodPleasure pair, ...);
 	void virtual FillFoodPleasureMap() {};
 	//void virtual _spriteList;

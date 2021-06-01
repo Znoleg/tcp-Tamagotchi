@@ -45,7 +45,7 @@ Tamagotchi::Tamagotchi(Client* client, QWidget *parent)
     sleepCnt = findChild<QLabel*>("SleepCnt");
     cureBtn = findChild<QPushButton*>("CureBtn");
     feedBtn = findChild<QPushButton*>("FeedBtn");
-    walkBtn = findChild<QPushButton*>("WalkBtn");
+    playBtn = findChild<QPushButton*>("PlayBtn");
     pissBtn = findChild<QPushButton*>("PissBtn");
     sleepBtn = findChild<QPushButton*>("SleepBtn");
 
@@ -55,6 +55,11 @@ Tamagotchi::Tamagotchi(Client* client, QWidget *parent)
     connect(mamCrBtn, &QPushButton::released, this, [=](){Register(TamaTypes::Cat);} );
     connect(zucCrBtn, &QPushButton::released, this, [=](){Register(TamaTypes::Hedgehog);});
     connect(sekCrBtn, &QPushButton::released, this, [=](){Register(TamaTypes::Penguin);});
+
+    connect(cureBtn, SIGNAL(released()), this, SLOT(TamagCure()));
+    connect(playBtn, SIGNAL(released()), this, SLOT(TamagPlay()));
+    connect(pissBtn, SIGNAL(released()), this, SLOT(TamagPiss()));
+    connect(sleepBtn, SIGNAL(released()), this, SLOT(TamagSleep()));
 }
 
 Tamagotchi::~Tamagotchi()
@@ -197,6 +202,37 @@ void Tamagotchi::Register(TamaTypes type)
     registerCache = {"", ""};
     SetFrameEnable(registerFrame, false);
     SetFrameEnable(playFrame, true);
+}
+
+/* Tamag Stat Buttons*/
+void Tamagotchi::ChooseFood()
+{
+
+}
+
+void Tamagotchi::TamagFeed(FoodType type) const
+{
+    _client->SendEatRequest(type);
+}
+
+void Tamagotchi::TamagCure() const
+{
+    _client->SendCureRequest();
+}
+
+void Tamagotchi::TamagPlay() const
+{
+    _client->SendPlayRequest();
+}
+
+void Tamagotchi::TamagSleep() const
+{
+    _client->SendSleepRequest();
+}
+
+void Tamagotchi::TamagPiss() const
+{
+    _client->SendPissRequest();
 }
 
 void Tamagotchi::LogWarning(const QString& text)

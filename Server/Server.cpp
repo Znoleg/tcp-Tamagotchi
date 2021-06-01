@@ -88,32 +88,30 @@ void Server::Register(const User& owner, const string tamaName, const TamaTypes 
 {
 	Tamagochi* tamag = GetTamagochiUsingType(tamaName, tamType);
 	
-	ClientData data = {client_fd, owner, *tamag, 1};
+	ClientData data = {client_fd, owner, tamag, 1};
 	_users.push_back(data);
 	SaveData();
 	
 	SendStats(data);
 }
 
-bool Server::TryLogin(const User& user, const int client_fd, double*& stats)
+bool Server::TryLogin(const User& user, const int client_fd, ClientData& client)
 {
 	bool res;
-	ClientData toLogin = TryFindUser(user, res);
+	int index = TryFindUser(user, res);
 	if (res == false) return false;
-	if (toLogin.logged == true) return false;
-	toLogin.clientFd = client_fd;
+	if (_users[index].logged == true) return false;
+	_users[index].clientFd = client_fd;
 
-    TamaTypes type = toLogin.tamag.GetType();
-    send(client_fd, &type, sizeof(type), 0);
-	stats = toLogin.tamag.GetStats();
-	toLogin.logged = true;
+	_users[index].logged = true;
+	client = _users[index];
 	return true;
 }
 
 void Server::SendStats(const ClientData& client) const
 {
-	double* stats = client.tamag.GetStats();
-	size_t size = client.tamag.GetStatsCount() * sizeof(double);
+	double* stats = client.tamag->GetStats();
+	size_t size = client.tamag->GetStatsCount() * sizeof(double);
 	send(client.clientFd, stats, size, 0);
 	printf("Sended stats to %i client \n", client.clientFd);
 }
@@ -125,24 +123,25 @@ void* StartTamasSimulationThread(void*)
 	{
 		for (ClientData clientData : server->_users)
 		{
-			clientData.tamag.DoLifeIteration();
-			if (clientData.logged) 
+			bool logged = clientData.logged;
+			clientData.tamag->DoLifeIteration(logged);
+			if (logged) 
 				server->SendStats(clientData);
 		}
 		sleep(10);
 	}
 }
 
-// Activates and returns tamagochi life simulation thread
-pthread_t Server::ActivateUserTama(ClientData& owner, string& dieStatus)
-{
-	//if (!TryFindUser(owner, NULL)) throw new invalid_argument("User " + owner.name + "doesn't exist.");
-	auto userTama = owner.tamag;
-	pthread_t simulation;
-	pthread_create(&simulation, NULL, StartTamasSimulationThread, (void*)&userTama);
-	pthread_join(simulation, (void**)&dieStatus);
-	return simulation;
-}
+// // Activates and returns tamagochi life simulation thread
+// pthread_t Server::ActivateUserTama(ClientData& owner, string& dieStatus)
+// {
+// 	//if (!TryFindUser(owner, NULL)) throw new invalid_argument("User " + owner.name + "doesn't exist.");
+// 	auto userTama = owner.tamag;
+// 	pthread_t simulation;
+// 	pthread_create(&simulation, NULL, StartTamasSimulationThread, (void*)&userTama);
+// 	pthread_join(simulation, (void**)&dieStatus);
+// 	return simulation;
+// }
 
 void Server::SaveData()
 {
@@ -152,7 +151,7 @@ void Server::SaveData()
 	int writeCnt = 0;
 	for (auto userData : _users)
 	{
-		file << userData.user << " | " << (int)userData.tamag.GetType() << " " << userData.tamag << endl;
+		file << userData.user << " | " << (int)userData.tamag->GetType() << " " << userData.tamag << endl;
 		writeCnt++;
 	}
 	printf("Data successfully saved: saved %i data\n", writeCnt);
@@ -179,34 +178,36 @@ void Server::LoadData()
 		
 		file >> *tama;
 		
-		_users.push_back({0, user, *tama, 0});
+		_users.push_back({0, user, tama, 0});
 	}
 }
 
-ClientData Server::TryFindUser(const User& user, bool& res) const
+int Server::TryFindUser(const User& user, bool& res) const
 {
     res = false;
-	for (auto userData : _users)
+	for (int i = 0; i < _users.size(); i++)
 	{
-		if (userData.user == user) 
+		if (_users[i].user == user) 
 		{
 			res = true;
-			return userData;
+			return i;
 		}
 	}
+	return NULL;
 }
 
-ClientData Server::TryFindUser(const int clientFd, bool& res) const
+int Server::TryFindUser(const int clientFd, bool& res) const
 {
     res = false;
-	for (auto userData : _users)
+	for (int i = 0; i < _users.size(); i++)
 	{
-		if (userData.clientFd == clientFd) 
+		if (_users[i].clientFd == clientFd) 
 		{
 			res = true;
-			return userData;
+			return i;
 		}
 	}
+	return NULL;
 }
 
 
@@ -217,7 +218,7 @@ void* HandleClientReqs(void* clientFdPtr)
 	ServerReq request;
     while (true) // waiting for client requests
 	{
-		int ret = recv(clientFd, &request, sizeof(&request), 0);
+		int ret = recv(clientFd, &request, sizeof(ServerReq), 0);
 		if (ret > 0)
 		{
 			char requestStr[128];
@@ -229,53 +230,55 @@ void* HandleClientReqs(void* clientFdPtr)
 			if (request == ServerReq::Login)
 			{
 				double* stats = new double[5];
-				int result = server->TryLogin(user, clientFd, stats); 
-				send(clientFd, &result, 4ul, 0);
+				ClientData logged_client;
+				bool result = server->TryLogin(user, clientFd, logged_client); 
+				send(clientFd, &result, sizeof(bool), 0);
 				
 				if (result) 
 				{
-					bool res;
- 					ClientData client = server->TryFindUser(user, res);
-					TamaTypes type = client.tamag.GetType();
-					send(clientFd, &type, sizeof(type), 0);
-					server->SendStats(client);
+					TamaTypes tamaType = logged_client.tamag->GetType();
+					
+					send(clientFd, &tamaType, sizeof(tamaType), 0);
+					server->SendStats(logged_client);
 				}
 			}
 			else if (request == ServerReq::Register)
 			{
 				string tamaName = splitedReq[2]; // splitting request
 				TamaTypes type;
-				recv(clientFd, &type, sizeof(type), 0); // Recieving type
+				recv(clientFd, &type, sizeof(TamaTypes), 0); // Recieving type
 
 				server->Register(user, tamaName, type, clientFd);
 			}
 			else
 			{
 				bool res;
-				ClientData data = server->TryFindUser(user, res);
+				int index = server->TryFindUser(user, res);
 				if (res == false) break;
 				if (request == ServerReq::TamagCure)
 				{
-					data.tamag.CureAnimal();
+					server->_users[index].tamag->CureAnimal();
 				}
 				else if (request == ServerReq::TamagEat)
 				{
-					data.tamag.FeedAnimal(Food::Apple); // for example;
+					FoodType type;
+					recv(clientFd, &type, sizeof(FoodType), 0);
+					server->_users[index].tamag->FeedAnimal(type); // for example;
 				}
 				else if (request == ServerReq::TamagPlay)
 				{
-					data.tamag.PlayWithAnimal();
+					server->_users[index].tamag->PlayWithAnimal();
 				}
 				else if (request == ServerReq::TamagPiss)
 				{
-					data.tamag.WalkWithAnimal();
+					server->_users[index].tamag->WalkWithAnimal();
 				}
 				else if (request == ServerReq::TamagSleep)
 				{
-					data.tamag.SleepWithAnimal();
+					server->_users[index].tamag->SleepWithAnimal();
 				}
 				
-				server->SendStats(data);
+				server->SendStats(server->_users[index]);
 			}
 			
 		}

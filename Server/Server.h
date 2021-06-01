@@ -13,7 +13,7 @@ struct ClientData
 {
 	int clientFd;
 	User user;
-	Tamagochi tamag;
+	Tamagochi* tamag;
 	bool logged;
 };
 
@@ -24,7 +24,7 @@ public:
 	
 	sockaddr_in CreateConnection(in_port_t& port);
 	void StartListening(unsigned maxListeners);
-	bool TryLogin(const User& user, const int client_fd, double*& stats);
+	bool TryLogin(const User& user, const int client_fd, ClientData& logged);
 	void Register(const User& owner, const string tamaName, const TamaTypes tamType, const int client_fd);
 	static Server* GetInstance();
 	~Server();
@@ -39,8 +39,8 @@ private:
 	friend void* HandleClientReqs(void*);
 	void SendStats(const ClientData& client) const;
 	void HandleRequest(void*);
-	ClientData TryFindUser(const User& user, bool& res) const;
-	ClientData TryFindUser(const int clientFd, bool& res) const;
+	int TryFindUser(const User& user, bool& res) const;
+	int TryFindUser(const int clientFd, bool& res) const;
 	vector<ClientData> _users;
 	string _fileName = "./temp/serverdata.txt";
 	static Server* _instance;

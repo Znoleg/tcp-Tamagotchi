@@ -592,7 +592,7 @@ p, li { white-space: pre-wrap; }
       <string>Покормить</string>
      </property>
     </widget>
-    <widget class="QPushButton" name="WalkBtn">
+    <widget class="QPushButton" name="PlayBtn">
      <property name="geometry">
       <rect>
        <x>530</x>
@@ -602,7 +602,7 @@ p, li { white-space: pre-wrap; }
       </rect>
      </property>
      <property name="text">
-      <string>Погулять</string>
+      <string>Поиграть</string>
      </property>
     </widget>
     <widget class="QWidget" name="horizontalLayoutWidget_2">
