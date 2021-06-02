@@ -43,6 +43,7 @@ int Tamagochi::GetStatValue(TamStats stat) const
 void Tamagochi::SetStatValue(TamStats stat, double value)
 {
     if (value < 0) return;
+    if (value > _maxStatValue) value = _maxStatValue;
     _statusValue->find(stat)->second = value;
 }
 
@@ -51,12 +52,8 @@ bool Tamagochi::ChangeStatValue(TamStats stat, double delta)
 {
     auto it = _statusValue->find(stat);
     it->second += delta;
+    if (it->second > _maxStatValue) it->second = _maxStatValue;
     return it->second > 0;
-}
-
-bool Tamagochi::ChangeStatValues()
-{
-    return true;
 }
 
 void Tamagochi::FeedAnimal(FoodType food)
@@ -188,6 +185,7 @@ int Tamagochi::GetStatsCount() const
 Penguin::Penguin(std::string name) : Tamagochi(name, 80)
 {
     _tamType = TamaTypes::Penguin;
+    _maxStatValue = 80;
 }
 
 void Penguin::FillFoodPleasureMap()
@@ -196,15 +194,16 @@ void Penguin::FillFoodPleasureMap()
     _foodPleasure->insert(pair<FoodType, Pleasure>(FoodType::Cucumber, Pleasure::Bad));
     _foodPleasure->insert(pair<FoodType, Pleasure>(FoodType::Mushroom, Pleasure::Bad));
     _foodPleasure->insert(pair<FoodType, Pleasure>(FoodType::Meat, Pleasure::OK));
-    _foodPleasure->insert(pair<FoodType, Pleasure>(FoodType::Cheese, Pleasure::Bad));
+    _foodPleasure->insert(pair<FoodType, Pleasure>(FoodType::Cheese, Pleasure::OK));
     _foodPleasure->insert(pair<FoodType, Pleasure>(FoodType::Cake, Pleasure::OK));
     _foodPleasure->insert(pair<FoodType, Pleasure>(FoodType::Fish, Pleasure::Good));
-    _foodPleasure->insert(pair<FoodType, Pleasure>(FoodType::Ice, Pleasure::Good));
+    _foodPleasure->insert(pair<FoodType, Pleasure>(FoodType::Icecream, Pleasure::Good));
 }
 
 Cat::Cat(std::string name) : Tamagochi(name, 120.0)
 {
     _tamType = TamaTypes::Cat;
+    _maxStatValue = 120;
 }
 
 void Cat::FillFoodPleasureMap()
@@ -216,22 +215,23 @@ void Cat::FillFoodPleasureMap()
     _foodPleasure->insert(pair<FoodType, Pleasure>(FoodType::Cheese, Pleasure::OK));
     _foodPleasure->insert(pair<FoodType, Pleasure>(FoodType::Cake, Pleasure::Good));
     _foodPleasure->insert(pair<FoodType, Pleasure>(FoodType::Fish, Pleasure::Good));
-    _foodPleasure->insert(pair<FoodType, Pleasure>(FoodType::Ice, Pleasure::Bad));
+    _foodPleasure->insert(pair<FoodType, Pleasure>(FoodType::Icecream, Pleasure::OK));
 }
 
 Hedgehog::Hedgehog(std::string name) : Tamagochi(name, 100.0)
 {
     _tamType = TamaTypes::Hedgehog;
+    _maxStatValue = 100;
 }
 
 void Hedgehog::FillFoodPleasureMap()
 {
-    _foodPleasure->insert(pair<FoodType, Pleasure>(FoodType::Apple, Pleasure::Good));
+    _foodPleasure->insert(pair<FoodType, Pleasure>(FoodType::Apple, Pleasure::OK));
     _foodPleasure->insert(pair<FoodType, Pleasure>(FoodType::Cucumber, Pleasure::OK));
     _foodPleasure->insert(pair<FoodType, Pleasure>(FoodType::Mushroom, Pleasure::Good));
     _foodPleasure->insert(pair<FoodType, Pleasure>(FoodType::Meat, Pleasure::Bad));
-    _foodPleasure->insert(pair<FoodType, Pleasure>(FoodType::Cheese, Pleasure::OK));
+    _foodPleasure->insert(pair<FoodType, Pleasure>(FoodType::Cheese, Pleasure::Good));
     _foodPleasure->insert(pair<FoodType, Pleasure>(FoodType::Cake, Pleasure::OK));
     _foodPleasure->insert(pair<FoodType, Pleasure>(FoodType::Fish, Pleasure::Bad));
-    _foodPleasure->insert(pair<FoodType, Pleasure>(FoodType::Ice, Pleasure::Bad));
+    _foodPleasure->insert(pair<FoodType, Pleasure>(FoodType::Icecream, Pleasure::Bad));
 }

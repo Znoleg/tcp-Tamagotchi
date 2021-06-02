@@ -55,6 +55,17 @@ sockaddr_in Client::ConnectToServer(in_port_t port, hostent* server)
     return serv_addr;
 }
 
+void Client::HandleServerDisconnection()
+{
+
+}
+
+void Client::NotifyDisconnection()
+{
+    char err = char(CONNECT_LOST);
+    send(_sockfd, &err, sizeof(char), 0);
+}
+
 bool Client::TryServerLogin(const User& user)
 {
     ServerReq req = ServerReq::Login;
@@ -62,16 +73,28 @@ bool Client::TryServerLogin(const User& user)
     char requestBuf[127];
     bool login_result;
     strcpy(requestBuf, request.c_str());
-    
-    send(_sockfd, &req, sizeof(ServerReq), 0);
-    send(_sockfd, requestBuf, strlen(requestBuf) * sizeof(char), 0); // sending request
-    recv(_sockfd, &login_result, sizeof(bool), 0);
+    if (!safesend(_sockfd, &req, sizeof(ServerReq)))
+        HandleServerDisconnection();
+    if (!safesend(_sockfd, requestBuf, strlen(requestBuf) * sizeof(char))) // sending request
+        HandleServerDisconnection();
+    if (!saferecv(_sockfd, &login_result, sizeof(bool)))
+        HandleServerDisconnection();
 
     if (!login_result) return false;
 
     TamaTypes type;
-    recv(_sockfd, &type, sizeof(type), 0);
+    if (!saferecv(_sockfd, &type, sizeof(type)))
+        HandleServerDisconnection();
+
     tamagWindow->SetTamaType(type);
+
+    char namebuf[64];
+    if (!saferecv(_sockfd, namebuf, 64ul, 1))
+        HandleServerDisconnection();
+    string n(namebuf, 1);
+    size_t namesize = stoi(n);
+    string name_str(namebuf + 1, namesize);
+    tamagWindow->SetName(name_str);
 
     pthread_t tamStatChangeThr;
     pthread_create(&tamStatChangeThr, NULL, GetTamagStatChangeThread, (void**)this);
@@ -118,6 +141,7 @@ void Client::SendEatRequest(FoodType type) const
     ServerReq req = ServerReq::TamagEat;
     send(_sockfd, &req, sizeof(ServerReq), 0);
     SendUserCredinals();
+    sleep(1);
     send(_sockfd, &type, sizeof(FoodType), 0);
 }
 
@@ -156,6 +180,36 @@ void* GetTamagStatChangeThread(void* arg)
         if (recv(sock, stats, size, 0) <= 0) continue;
 
         client->HandleTamStats(stats);
+    }
+}
+
+void* CommandsThread(void* arg)
+{
+    Client* client = static_cast<Client*>(arg);
+    while (true)
+    {
+        char cmd_buf[32];
+        scanf("%s", cmd_buf);
+        if (strcmp(cmd_buf, "connect"))
+        {
+            char ip_buf[32];
+            scanf("%s", ip_buf);
+
+            char ip[22];
+            char port_buf[10];
+            char *token = strtok(ip_buf, ":");
+            if (token == NULL)
+            {
+                printf("Please provide adress in ip:port format!\n");
+                continue;
+            }
+
+            strcpy(port_buf, token + 1);
+            strncpy(ip, ip_buf, strlen(ip_buf) - strlen(port_buf) - 1);
+            hostent *server = get_host_by_ip(ip);
+            in_port_t port = atoi(port_buf);
+            client->ConnectToServer(port, server);
+        }
     }
 }
 

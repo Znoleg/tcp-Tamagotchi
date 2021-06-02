@@ -18,8 +18,7 @@ class TamagochiController
 {
 	friend class Server;
 	void virtual SetStatValue(TamStats stat, double value) = 0;
-	bool virtual ChangeStatValue(TamStats stat, double delta) = 0;
-	bool virtual ChangeStatValues() = 0;
+    bool virtual ChangeStatValue(TamStats stat, double delta) = 0;
 	void virtual DoLifeIteration(bool logged) = 0;
 	void virtual FeedAnimal(FoodType type) = 0;
 	void virtual PlayWithAnimal() = 0;
@@ -37,8 +36,7 @@ public:
 	TamaTypes GetType() const;
 	double* GetStats() const;
 	void SetStatValue(TamStats stat, double value) override;
-	bool ChangeStatValue(TamStats stat, double delta) override;
-	bool ChangeStatValues() override;
+    bool ChangeStatValue(TamStats stat, double delta) override;
 	void virtual DoLifeIteration(bool logged) override;
 	void virtual FeedAnimal(FoodType) override;
 	void virtual PlayWithAnimal() override;
@@ -56,6 +54,7 @@ protected:
 	//void virtual _spriteList;
 	map<TamStats, double>* _statusValue = new map<TamStats, double>();
 	TamaTypes _tamType;
+    double _maxStatValue;
 private:
 	Tamagochi();
 	string _name;	

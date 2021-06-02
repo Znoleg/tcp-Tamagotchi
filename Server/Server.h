@@ -26,6 +26,8 @@ public:
 	void StartListening(unsigned maxListeners);
 	bool TryLogin(const User& user, const int client_fd, ClientData& logged);
 	void Register(const User& owner, const string tamaName, const TamaTypes tamType, const int client_fd);
+	void HandleClientDisconnect(int clientSock);
+	void AddClientHandler(pair<int, pthread_t> pthreadHandler);
 	static Server* GetInstance();
 	~Server();
 private:
@@ -43,5 +45,6 @@ private:
 	int TryFindUser(const int clientFd, bool& res) const;
 	vector<ClientData> _users;
 	string _fileName = "./temp/serverdata.txt";
+	map<int, pthread_t> _clientHandlers;
 	static Server* _instance;
 };

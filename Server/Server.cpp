@@ -73,6 +73,11 @@ sockaddr_in Server::CreateConnection(in_port_t& port)
 	return serv_addr;
 }
 
+void Server::AddClientHandler(pair<int, pthread_t> pthreadHandler)
+{
+	_clientHandlers.insert(pthreadHandler);
+}
+
 void Server::StartListening(unsigned maxListeners)
 {
 	if (_sockfd == 0) error("Server error: create socket before listening start!\n"); 
@@ -108,6 +113,18 @@ bool Server::TryLogin(const User& user, const int client_fd, ClientData& client)
 	return true;
 }
 
+void Server::HandleClientDisconnect(int clientSock)
+{
+	printf("Client %i disconnected!\n", clientSock);
+	fflush(stdout);
+	
+	auto it = _clientHandlers.find(clientSock);
+	//pthread_cancel(it->second);
+	bool res;
+	int index = TryFindUser(clientSock, res);
+	_users[index].logged = false;
+}
+
 void Server::SendStats(const ClientData& client) const
 {
 	double* stats = client.tamag->GetStats();
@@ -132,16 +149,6 @@ void* StartTamasSimulationThread(void*)
 	}
 }
 
-// // Activates and returns tamagochi life simulation thread
-// pthread_t Server::ActivateUserTama(ClientData& owner, string& dieStatus)
-// {
-// 	//if (!TryFindUser(owner, NULL)) throw new invalid_argument("User " + owner.name + "doesn't exist.");
-// 	auto userTama = owner.tamag;
-// 	pthread_t simulation;
-// 	pthread_create(&simulation, NULL, StartTamasSimulationThread, (void*)&userTama);
-// 	pthread_join(simulation, (void**)&dieStatus);
-// 	return simulation;
-// }
 
 void Server::SaveData()
 {
@@ -151,7 +158,7 @@ void Server::SaveData()
 	int writeCnt = 0;
 	for (auto userData : _users)
 	{
-		file << userData.user << " | " << (int)userData.tamag->GetType() << " " << userData.tamag << endl;
+		file << userData.user << " | " << (int)userData.tamag->GetType() << " " << *userData.tamag << endl;
 		writeCnt++;
 	}
 	printf("Data successfully saved: saved %i data\n", writeCnt);
@@ -182,6 +189,8 @@ void Server::LoadData()
 	}
 }
 
+
+
 int Server::TryFindUser(const User& user, bool& res) const
 {
     res = false;
@@ -193,7 +202,7 @@ int Server::TryFindUser(const User& user, bool& res) const
 			return i;
 		}
 	}
-	return NULL;
+	return 0;
 }
 
 int Server::TryFindUser(const int clientFd, bool& res) const
@@ -207,7 +216,7 @@ int Server::TryFindUser(const int clientFd, bool& res) const
 			return i;
 		}
 	}
-	return NULL;
+	return 0;
 }
 
 
@@ -218,11 +227,19 @@ void* HandleClientReqs(void* clientFdPtr)
 	ServerReq request;
     while (true) // waiting for client requests
 	{
-		int ret = recv(clientFd, &request, sizeof(ServerReq), 0);
-		if (ret > 0)
+		if (!saferecv(clientFd, &request, sizeof(ServerReq), sizeof(ServerReq)))
+		{
+			server->HandleClientDisconnect(clientFd);
+			pthread_exit(0);
+		}
+		if (true)
 		{
 			char requestStr[128];
-			while (recv(clientFd, requestStr, 127, 0) <= 0);
+			if (!saferecv(clientFd, requestStr, 127, 1))
+			{
+				server->HandleClientDisconnect(clientFd);
+				pthread_exit(0);
+			}
 			printf("Got request from %i user: %s\n", clientFd, requestStr);
 			vector<string> splitedReq = SplitString(requestStr, " ");
 			User user{splitedReq[0], splitedReq[1]};
@@ -237,8 +254,14 @@ void* HandleClientReqs(void* clientFdPtr)
 				if (result) 
 				{
 					TamaTypes tamaType = logged_client.tamag->GetType();
+					string name = logged_client.tamag->GetName();
+					char name_buf[name.size() + 1];
+					int size = name.size();
+					sprintf(name_buf, "%i", size);
+					strcpy(name_buf + 1, name.c_str());
 					
 					send(clientFd, &tamaType, sizeof(tamaType), 0);
+					send(clientFd, name_buf, strlen(name_buf) * sizeof(char), 0);
 					server->SendStats(logged_client);
 				}
 			}
@@ -246,7 +269,11 @@ void* HandleClientReqs(void* clientFdPtr)
 			{
 				string tamaName = splitedReq[2]; // splitting request
 				TamaTypes type;
-				recv(clientFd, &type, sizeof(TamaTypes), 0); // Recieving type
+				if (!saferecv(clientFd, &type, sizeof(TamaTypes), sizeof(TamaTypes)))
+				{
+					server->HandleClientDisconnect(clientFd);
+					pthread_exit(0);
+				}
 
 				server->Register(user, tamaName, type, clientFd);
 			}
@@ -262,8 +289,12 @@ void* HandleClientReqs(void* clientFdPtr)
 				else if (request == ServerReq::TamagEat)
 				{
 					FoodType type;
-					recv(clientFd, &type, sizeof(FoodType), 0);
-					server->_users[index].tamag->FeedAnimal(type); // for example;
+					if (!saferecv(clientFd, &type, sizeof(FoodType), sizeof(FoodType)))
+					{
+						server->HandleClientDisconnect(clientFd);
+						pthread_exit(0);
+					}
+					server->_users[index].tamag->FeedAnimal(type);
 				}
 				else if (request == ServerReq::TamagPlay)
 				{
@@ -327,13 +358,14 @@ int main(int argc, char* argv[])
    int clientId = 0;
    while (clientId < MAX_CLIENTS)
    {
-       newsockfd = accept(sockfd, (sockaddr*)&cli_addr, &clilen);
-       if (newsockfd < 0) error("Error on accept\n");
+    	newsockfd = accept(sockfd, (sockaddr*)&cli_addr, &clilen);
+    	if (newsockfd < 0) error("Error on accept\n");
 		printf("Client connected! ID: %i, FD: %i\n", clientId, newsockfd);
-       pthread_t threadId;
-       if (pthread_create(&threadId, NULL, HandleClientReqs, (void**)&newsockfd) < 0) error("error creating thread\n");
-       pthread_join(threadId, NULL);
-       //close(newsockfd);
-       clientId++;
+    	pthread_t threadId;
+    	if (pthread_create(&threadId, NULL, HandleClientReqs, (void**)&newsockfd) < 0) error("error creating thread\n");
+		server->AddClientHandler(pair<int, pthread_t>(newsockfd, threadId));
+
+    	pthread_join(threadId, NULL);
+    	clientId++;
    }
 }

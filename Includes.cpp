@@ -1,14 +1,9 @@
 #include "Includes.h"
 
-void error(char* msg)
-{
-    perror(msg);
-    exit(1);
-}
-
 void error(string msg)
 {
     error(msg.c_str());
+    exit(1);
 }
 
 vector<string> SplitString(const string& str, const string& delim)
@@ -24,6 +19,21 @@ vector<string> SplitString(const string& str, const string& delim)
         prev = pos + delim.length();
     } while (pos < str.length() && prev < str.length());
     return tokens;
+}
+
+bool safesend(int sock, void* packet, size_t packet_size)
+{
+    if (send(sock, packet, packet_size, 0) <= packet_size) return false;
+    return true;
+}
+
+bool saferecv(int sock, void* packet, size_t max_packet_size, size_t min_packet_size)
+{
+    if (recv(sock, packet, max_packet_size, 0) < min_packet_size) return false;
+
+    char* p = static_cast<char*>(packet);
+    if (p[0] == char(CONNECT_LOST)) return false;
+    return true;
 }
 
 int SockConnection::GetSockFd() const

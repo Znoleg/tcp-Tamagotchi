@@ -136,8 +136,8 @@
     </property>
     <property name="geometry">
      <rect>
-      <x>270</x>
-      <y>30</y>
+      <x>310</x>
+      <y>10</y>
       <width>671</width>
       <height>541</height>
      </rect>
@@ -444,9 +444,9 @@ p, li { white-space: pre-wrap; }
    <widget class="QLabel" name="WarningLabel">
     <property name="geometry">
      <rect>
-      <x>-80</x>
-      <y>500</y>
-      <width>419</width>
+      <x>390</x>
+      <y>570</y>
+      <width>511</width>
       <height>17</height>
      </rect>
     </property>
@@ -462,14 +462,14 @@ p, li { white-space: pre-wrap; }
    </widget>
    <widget class="QFrame" name="PlayWindow">
     <property name="enabled">
-     <bool>false</bool>
+     <bool>true</bool>
     </property>
     <property name="geometry">
      <rect>
-      <x>30</x>
-      <y>40</y>
+      <x>20</x>
+      <y>10</y>
       <width>701</width>
-      <height>511</height>
+      <height>631</height>
      </rect>
     </property>
     <property name="frameShape">
@@ -481,8 +481,8 @@ p, li { white-space: pre-wrap; }
     <widget class="QLabel" name="TamaImage">
      <property name="geometry">
       <rect>
-       <x>260</x>
-       <y>200</y>
+       <x>270</x>
+       <y>300</y>
        <width>141</width>
        <height>131</height>
       </rect>
@@ -507,7 +507,7 @@ p, li { white-space: pre-wrap; }
      <property name="geometry">
       <rect>
        <x>0</x>
-       <y>60</y>
+       <y>0</y>
        <width>701</width>
        <height>80</height>
       </rect>
@@ -569,8 +569,8 @@ p, li { white-space: pre-wrap; }
     <widget class="QPushButton" name="CureBtn">
      <property name="geometry">
       <rect>
-       <x>50</x>
-       <y>150</y>
+       <x>60</x>
+       <y>120</y>
        <width>89</width>
        <height>25</height>
       </rect>
@@ -579,24 +579,34 @@ p, li { white-space: pre-wrap; }
       <string>Вылечить</string>
      </property>
     </widget>
-    <widget class="QPushButton" name="FeedBtn">
+    <widget class="QPushButton" name="AppleBtn">
      <property name="geometry">
       <rect>
-       <x>290</x>
-       <y>150</y>
-       <width>89</width>
-       <height>25</height>
+       <x>270</x>
+       <y>90</y>
+       <width>41</width>
+       <height>41</height>
       </rect>
      </property>
      <property name="text">
-      <string>Покормить</string>
+      <string/>
+     </property>
+     <property name="icon">
+      <iconset resource="resources.qrc">
+       <normaloff>:/images/Food/images/Food/Apple.png</normaloff>:/images/Food/images/Food/Apple.png</iconset>
+     </property>
+     <property name="iconSize">
+      <size>
+       <width>30</width>
+       <height>30</height>
+      </size>
      </property>
     </widget>
     <widget class="QPushButton" name="PlayBtn">
      <property name="geometry">
       <rect>
        <x>530</x>
-       <y>150</y>
+       <y>120</y>
        <width>89</width>
        <height>25</height>
       </rect>
@@ -609,7 +619,7 @@ p, li { white-space: pre-wrap; }
      <property name="geometry">
       <rect>
        <x>0</x>
-       <y>360</y>
+       <y>550</y>
        <width>701</width>
        <height>80</height>
       </rect>
@@ -649,30 +659,13 @@ p, li { white-space: pre-wrap; }
         </property>
        </widget>
       </item>
-      <item>
-       <widget class="QLabel" name="label_14">
-        <property name="text">
-         <string>Счастье:</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QLabel" name="label_15">
-        <property name="text">
-         <string>100.0</string>
-        </property>
-       </widget>
-      </item>
      </layout>
     </widget>
     <widget class="QPushButton" name="SleepBtn">
      <property name="geometry">
       <rect>
-       <x>300</x>
-       <y>450</y>
+       <x>480</x>
+       <y>500</y>
        <width>89</width>
        <height>25</height>
       </rect>
@@ -684,14 +677,222 @@ p, li { white-space: pre-wrap; }
     <widget class="QPushButton" name="PissBtn">
      <property name="geometry">
       <rect>
-       <x>60</x>
-       <y>450</y>
+       <x>120</x>
+       <y>500</y>
        <width>89</width>
        <height>25</height>
       </rect>
      </property>
      <property name="text">
       <string>Пописать</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="CucumberBtn">
+     <property name="geometry">
+      <rect>
+       <x>320</x>
+       <y>90</y>
+       <width>41</width>
+       <height>41</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="icon">
+      <iconset resource="resources.qrc">
+       <normaloff>:/images/Food/images/Food/Cucumber.png</normaloff>:/images/Food/images/Food/Cucumber.png</iconset>
+     </property>
+     <property name="iconSize">
+      <size>
+       <width>30</width>
+       <height>30</height>
+      </size>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="MushroomBtn">
+     <property name="geometry">
+      <rect>
+       <x>370</x>
+       <y>90</y>
+       <width>41</width>
+       <height>41</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="icon">
+      <iconset resource="resources.qrc">
+       <normaloff>:/images/Food/images/Food/Mushroom.png</normaloff>:/images/Food/images/Food/Mushroom.png</iconset>
+     </property>
+     <property name="iconSize">
+      <size>
+       <width>30</width>
+       <height>30</height>
+      </size>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="CakeBtn">
+     <property name="geometry">
+      <rect>
+       <x>370</x>
+       <y>140</y>
+       <width>41</width>
+       <height>41</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="icon">
+      <iconset resource="resources.qrc">
+       <normaloff>:/images/Food/images/Food/Donut.png</normaloff>:/images/Food/images/Food/Donut.png</iconset>
+     </property>
+     <property name="iconSize">
+      <size>
+       <width>30</width>
+       <height>30</height>
+      </size>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="MeatBtn">
+     <property name="geometry">
+      <rect>
+       <x>270</x>
+       <y>140</y>
+       <width>41</width>
+       <height>41</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="icon">
+      <iconset resource="resources.qrc">
+       <normaloff>:/images/Food/images/Food/Meat.png</normaloff>:/images/Food/images/Food/Meat.png</iconset>
+     </property>
+     <property name="iconSize">
+      <size>
+       <width>30</width>
+       <height>30</height>
+      </size>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="CheeseBtn">
+     <property name="geometry">
+      <rect>
+       <x>320</x>
+       <y>140</y>
+       <width>41</width>
+       <height>41</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="icon">
+      <iconset resource="resources.qrc">
+       <normaloff>:/images/Food/images/Food/Cheese.png</normaloff>:/images/Food/images/Food/Cheese.png</iconset>
+     </property>
+     <property name="iconSize">
+      <size>
+       <width>30</width>
+       <height>30</height>
+      </size>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="FishBtn">
+     <property name="geometry">
+      <rect>
+       <x>290</x>
+       <y>190</y>
+       <width>41</width>
+       <height>41</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="icon">
+      <iconset resource="resources.qrc">
+       <normaloff>:/images/Food/images/Food/Sushi.png</normaloff>:/images/Food/images/Food/Sushi.png</iconset>
+     </property>
+     <property name="iconSize">
+      <size>
+       <width>30</width>
+       <height>30</height>
+      </size>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="IcecreamBtn">
+     <property name="geometry">
+      <rect>
+       <x>340</x>
+       <y>190</y>
+       <width>41</width>
+       <height>41</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="icon">
+      <iconset resource="resources.qrc">
+       <normaloff>:/images/Food/images/Food/IceCream.png</normaloff>:/images/Food/images/Food/IceCream.png</iconset>
+     </property>
+     <property name="iconSize">
+      <size>
+       <width>30</width>
+       <height>30</height>
+      </size>
+     </property>
+    </widget>
+    <widget class="QLabel" name="TamagName">
+     <property name="geometry">
+      <rect>
+       <x>220</x>
+       <y>250</y>
+       <width>221</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>16</pointsize>
+       <weight>50</weight>
+       <italic>true</italic>
+       <bold>false</bold>
+       <underline>false</underline>
+      </font>
+     </property>
+     <property name="layoutDirection">
+      <enum>Qt::LeftToRight</enum>
+     </property>
+     <property name="text">
+      <string>Имя</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+    </widget>
+    <widget class="QLabel" name="TamagMsg">
+     <property name="geometry">
+      <rect>
+       <x>220</x>
+       <y>460</y>
+       <width>231</width>
+       <height>20</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">color: red;</string>
+     </property>
+     <property name="text">
+      <string>TextLabel</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
      </property>
     </widget>
    </widget>

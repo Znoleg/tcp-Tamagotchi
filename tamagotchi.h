@@ -25,6 +25,7 @@ public:
     ~Tamagotchi();
     void UpdateStatLables(double health, double hunger, double hapiness, double piss, double sleepness);
     void SetTamaType(const TamaTypes type);
+    void SetName(string name);
 
 private:
     Ui::Tamagotchi *ui;
@@ -32,9 +33,10 @@ private:
     QString _tamaResourcePath;
 
     QFrame* loginFrame, *registerFrame, *playFrame;
-    QLabel* logWarningLabel, *healthCnt, *hungerCnt, *hapinessCnt, *pissCnt, *sleepCnt, *tamagImage;
-    QPushButton* loginBtn, *regBtn, *mamCrBtn, *zucCrBtn, *sekCrBtn, *cureBtn, *feedBtn, *playBtn, *pissBtn, *sleepBtn;
-    QLineEdit* loginField, *passField, *tamaNameField;
+    QLabel* logWarningLabel, *healthCnt, *hungerCnt, *hapinessCnt, *pissCnt, *sleepCnt, *tamagImage, *tamagName, *tamagMsg;
+    QPushButton* loginBtn, *regBtn, *mamCrBtn, *zucCrBtn, *sekCrBtn, *cureBtn, *playBtn, *pissBtn, *sleepBtn;
+    QPushButton* appleBtn, *cucumberBtn, *mushroomBtn, *meatBtn, *cheeseBtn, *cakeBtn, *fishBtn, *icecreamBtn;
+    QLineEdit* loginField, *passField, *tamaNameRegister;
 
     void LogWarning(const QString& text);
     void SetTamaPicture(TamaFeelLevel& level);

@@ -35,4 +35,14 @@
         <file alias="Sleeping.png">images/sekitoritchi/Sleeping.png</file>
         <file alias="Walking.png">images/sekitoritchi/Walking.png</file>
     </qresource>
+    <qresource prefix="/images/Food">
+        <file>images/Food/Apple.png</file>
+        <file>images/Food/Cheese.png</file>
+        <file>images/Food/Cucumber.png</file>
+        <file>images/Food/Donut.png</file>
+        <file>images/Food/IceCream.png</file>
+        <file>images/Food/Meat.png</file>
+        <file>images/Food/Mushroom.png</file>
+        <file>images/Food/Sushi.png</file>
+    </qresource>
 </RCC>

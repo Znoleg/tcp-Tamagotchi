@@ -35,7 +35,7 @@ Tamagotchi::Tamagotchi(Client* client, QWidget *parent)
     mamCrBtn = findChild<QPushButton*>("MamCreateBtn");
     zucCrBtn = findChild<QPushButton*>("ZucCreateBtn");
     sekCrBtn = findChild<QPushButton*>("SekCreateBtn");
-    tamaNameField = findChild<QLineEdit*>("TamaName");
+    tamaNameRegister = findChild<QLineEdit*>("TamaName");
 
     tamagImage = findChild<QLabel*>("TamaImage");
     healthCnt = findChild<QLabel*>("HealthCnt");
@@ -44,10 +44,21 @@ Tamagotchi::Tamagotchi(Client* client, QWidget *parent)
     pissCnt = findChild<QLabel*>("PissCnt");
     sleepCnt = findChild<QLabel*>("SleepCnt");
     cureBtn = findChild<QPushButton*>("CureBtn");
-    feedBtn = findChild<QPushButton*>("FeedBtn");
     playBtn = findChild<QPushButton*>("PlayBtn");
     pissBtn = findChild<QPushButton*>("PissBtn");
     sleepBtn = findChild<QPushButton*>("SleepBtn");
+
+    appleBtn = findChild<QPushButton*>("AppleBtn");
+    cucumberBtn = findChild<QPushButton*>("CucumberBtn");
+    mushroomBtn = findChild<QPushButton*>("MushroomBtn");
+    meatBtn = findChild<QPushButton*>("MeatBtn");
+    cheeseBtn = findChild<QPushButton*>("CheeseBtn");
+    cakeBtn = findChild<QPushButton*>("CakeBtn");
+    fishBtn = findChild<QPushButton*>("FishBtn");
+    icecreamBtn = findChild<QPushButton*>("IcecreamBtn");
+
+    tamagName = findChild<QLabel*>("TamagName");
+    tamagMsg = findChild<QLabel*>("TamagMsg");
 
     connect(loginBtn, SIGNAL(released()), this, SLOT(TryLogin()));
     connect(regBtn, SIGNAL(released()), this, SLOT(SetRegisterCache()));
@@ -60,10 +71,19 @@ Tamagotchi::Tamagotchi(Client* client, QWidget *parent)
     connect(playBtn, SIGNAL(released()), this, SLOT(TamagPlay()));
     connect(pissBtn, SIGNAL(released()), this, SLOT(TamagPiss()));
     connect(sleepBtn, SIGNAL(released()), this, SLOT(TamagSleep()));
+    connect(appleBtn, &QPushButton::released, this, [=](){TamagFeed(FoodType::Apple);});
+    connect(cucumberBtn, &QPushButton::released, this, [=](){TamagFeed(FoodType::Cucumber);});
+    connect(mushroomBtn, &QPushButton::released, this, [=](){TamagFeed(FoodType::Mushroom);});
+    connect(meatBtn, &QPushButton::released, this, [=](){TamagFeed(FoodType::Meat);});
+    connect(cheeseBtn, &QPushButton::released, this, [=](){TamagFeed(FoodType::Cheese);});
+    connect(cakeBtn, &QPushButton::released, this, [=](){TamagFeed(FoodType::Cake);});
+    connect(fishBtn, &QPushButton::released, this, [=](){TamagFeed(FoodType::Fish);});
+    connect(icecreamBtn, &QPushButton::released, this, [=](){TamagFeed(FoodType::Icecream);});
 }
 
 Tamagotchi::~Tamagotchi()
 {
+    _client->NotifyDisconnection();
     delete ui;
 }
 
@@ -192,13 +212,15 @@ void Tamagotchi::SetRegisterCache()
 
 void Tamagotchi::Register(TamaTypes type)
 {
-    string tamaName = tamaNameField->text().toStdString();
+    string tamaName = tamaNameRegister->text().toStdString();
     if (tamaName == "")
     {
         LogWarning("Имя не может быть пустым!");
         return;
     }
     _client->ServerRegister(registerCache, tamaName, type);
+    SetName(tamaName);
+
     registerCache = {"", ""};
     SetFrameEnable(registerFrame, false);
     SetFrameEnable(playFrame, true);
@@ -247,4 +269,9 @@ void Tamagotchi::SetStat(const double statValue, QLabel* label)
     {
         label->setStyleSheet("QLabel { color: red; }");
     }
+}
+
+void Tamagotchi::SetName(string name)
+{
+    tamagName->setText(QString::fromStdString(name));
 }

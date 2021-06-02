@@ -11,15 +11,15 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 
-using namespace std;
-
 #define STD_PORT 2050
-
-void error(char* msg);
+#define CONNECT_LOST -1
+using namespace std;
 
 void error(string msg);
 
 vector<string> SplitString(const string& str, const string& delim);
+bool safesend(int sock, void* packet, size_t packet_size);
+bool saferecv(int sock, void* packet, size_t max_packet_size, size_t min_packet_size = 1);
 
 enum class TamaTypes
 {
@@ -33,7 +33,7 @@ enum class ServerReq
 
 enum class FoodType
 {
-	Apple, Cucumber, Mushroom, Meat, Cheese, Cake, Fish, Ice
+	Apple, Cucumber, Mushroom, Meat, Cheese, Cake, Fish, Icecream
 };
 
 struct User

@@ -16,7 +16,9 @@ public:
 	void ServerRegister(const User& user, const string& tamaName, const TamaTypes type);
     bool TryServerLogin(const User& user);
     void HandleTamStats(const double*) const;
-	
+    void HandleServerDisconnection();
+    void NotifyDisconnection();
+
     void SendUserCredinals() const;
 	void SendCureRequest() const;	
 	void SendEatRequest(FoodType type) const;
@@ -26,6 +28,7 @@ public:
 
 private:
     friend void* GetTamagStatChangeThread(void*);
+    friend void* CommandsThread(void*);
     User _currentUser;
 	hostent* _serverConnected;
 	static Client* _instance;
