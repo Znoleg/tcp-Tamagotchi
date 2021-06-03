@@ -20,7 +20,7 @@ using namespace std;
 
 void error(string msg);
 
-sem_t send_sem, recv_sem;
+extern sem_t send_sem, recv_sem;
 
 vector<string> SplitString(const string& str, const string& delim);
 bool safesend(int sock, void* packet, ssize_t packet_size);

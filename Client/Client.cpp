@@ -11,6 +11,7 @@
 #include <iostream>
 
 void* GetTamagStatChangeThread(void* arg);
+sem_t send_sem, recv_sem;
 
 Tamagotchi* tamagWindow;
 
@@ -273,6 +274,7 @@ void* GetTamagStatChangeThread(void* arg)
             tamagWindow->HandleTamaDeath();
             pthread_exit(0);
         }
+        //sleep(5);
     }
 }
 

@@ -11,6 +11,8 @@
 #include <termios.h>
 
 Server* Server::_instance = nullptr;
+sem_t send_sem, recv_sem;
+bool lock;
 
 Tamagochi* GetTamagochiUsingType(const string& name, const TamaTypes type)
 {
@@ -178,7 +180,7 @@ void* StartTamasSimulationThread(void*)
 			if (logged) 
 				server->SendStats(clientData);
 		}
-		sleep(10);
+		sleep(5);
 	}
 }
 
@@ -186,7 +188,11 @@ void Server::SaveData()
 {
 	ofstream file;
 	file.open(_fileName, ofstream::out | ofstream::trunc);
-	if (!file.is_open()) throw new invalid_argument("Can't open file " + _fileName + " for saving.");
+	if (!file.is_open())
+	{
+		printf("Can't open file %s for saving.", _fileName.c_str());
+		return;
+	}
 	int writeCnt = 0;
 	for (auto userData : _users)
 	{
@@ -343,6 +349,7 @@ void* HandleClientReqs(void* clientFdPtr)
 						server->HandleClientDisconnect(clientFd);
 						pthread_exit(0);
 					}
+					sleep(1);
 				}
 				else if (request == ServerReq::TamagPlay)
 				{
