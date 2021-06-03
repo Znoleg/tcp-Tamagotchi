@@ -32,8 +32,9 @@ double* Tamagochi::GetStats() const
     for (map<TamStats, double>::iterator it = _statusValue->begin(); it != _statusValue->end(); it++, i++)
     {
         array[i] = it->second;
-        if (it->second <= 0)
+        if (it->second <= 0.0)
         {
+            it->second = 0.0;
             array[0] = 1;
         }
     }

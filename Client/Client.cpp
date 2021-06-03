@@ -65,6 +65,8 @@ bool Client::ConnectToServer(in_port_t port, hostent* server)
 void Client::HandleServerDisconnection() const
 {
     write(STDOUT_FILENO, "Lost connection with server!\n", 29);
+    sem_destroy(&send_sem);
+    sem_destroy(&recv_sem);
     tamagWindow->HandleDisconnection();
 }
 
@@ -234,13 +236,15 @@ void Client::SendSleepRequest() const
 
 void Client::SendPlayRequest() const
 {
-    send(_sockfd, (void*)ServerReq::TamagPlay, sizeof(ServerReq), 0);
+    ServerReq req = ServerReq::TamagPlay;
+    send(_sockfd, &req, sizeof(ServerReq), 0);
     SendUserCredinals();
 }
 
 void Client::SendPissRequest() const
 {
-    send(_sockfd, (void*)ServerReq::TamagPiss, sizeof(ServerReq), 0);
+    ServerReq req = ServerReq::TamagPiss;
+    send(_sockfd, &req, sizeof(ServerReq), 0);
     SendUserCredinals();
 }
 
@@ -264,7 +268,7 @@ void* GetTamagStatChangeThread(void* arg)
         }
 
         client->HandleTamStats(stats);
-        if (stats[0] == 0)
+        if (stats[0] == 1)
         {
             tamagWindow->HandleTamaDeath();
             pthread_exit(0);
@@ -340,6 +344,9 @@ int main(int argc, char* argv[])
         }
         else connected = true;
     }
+
+    sem_init(&recv_sem, 0, 1);
+    sem_init(&send_sem, 0, 1);
 
     pthread_t cmd_thr;
     pthread_create(&cmd_thr, 0, CommandsThread, (void*)&client);

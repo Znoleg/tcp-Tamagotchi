@@ -302,7 +302,7 @@ void Tamagotchi::SetStat(const double statValue, QLabel* label)
     }
     else
     {
-        label->setStyleSheet("QLabel { color: white; }");
+        label->setStyleSheet("QLabel { color: grey; }");
     }
 }
 

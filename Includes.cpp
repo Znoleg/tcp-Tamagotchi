@@ -25,17 +25,21 @@ vector<string> SplitString(const string& str, const string& delim)
 
 bool safesend(int sock, void* packet, ssize_t packet_size)
 {
+    sem_wait(&send_sem);
     ssize_t size = send(sock, packet, packet_size, MSG_NOSIGNAL);
-    if (size < packet_size) 
-    {
-        return false;
-    }
+    sem_post(&send_sem);
+
+    if (size < packet_size) return false;
     return true;
 }
 
 bool saferecv(int sock, void* packet, ssize_t max_packet_size, ssize_t min_packet_size)
 {
-    if (recv(sock, packet, max_packet_size, 0) < min_packet_size) return false;
+    sem_wait(&recv_sem);
+    ssize_t size = recv(sock, packet, max_packet_size, 0);
+    sem_post(&recv_sem);
+
+    if (size < min_packet_size) return false;
 
     char* p = static_cast<char*>(packet);
     if (p[0] == char(CONNECT_LOST)) return false;

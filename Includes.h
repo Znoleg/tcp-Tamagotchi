@@ -12,12 +12,15 @@
 #include <netinet/in.h>
 #include <signal.h>
 #include <string.h>
+#include <semaphore.h>
 
 #define STD_PORT 2050
 #define CONNECT_LOST -1
 using namespace std;
 
 void error(string msg);
+
+sem_t send_sem, recv_sem;
 
 vector<string> SplitString(const string& str, const string& delim);
 bool safesend(int sock, void* packet, ssize_t packet_size);

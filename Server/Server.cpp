@@ -157,7 +157,7 @@ void Server::SendStats(const ClientData& client)
 		HandleClientDisconnect(fd);
 	else printf("Sended stats to %i client \n", fd);
 
-	if (stats[0] == 0)
+	if (stats[0] == 1)
 	{
 		printf("Player %i died! Erasing him...\n", fd);
 		bool res;
@@ -323,7 +323,7 @@ void* HandleClientReqs(void* clientFdPtr)
 			{
 				bool res;
 				int index = server->TryFindUser(user, res);
-				if (res == false) break;
+				if (res == false) continue;
 				if (request == ServerReq::TamagCure)
 				{
 					server->_users[index].tamag->CureAnimal();
@@ -400,6 +400,10 @@ void* HandleServerCmds(void*)
 			server->_tamagMultiplier = multip;
 			scanf("Multiplier changed to %lf", &multip);
 		}
+		else if (strcmp(cmd, "save") == 0)
+		{
+			server->SaveData();
+		}
 		else if (strcmp(cmd, "exit") == 0)
 		{
 			NotifyAndExit(0);
@@ -416,6 +420,9 @@ int main(int argc, char* argv[])
        portno = atoi(argv[1]);
    	}
 	/* */
+
+	sem_init(&recv_sem, 0, 1);
+	sem_init(&send_sem, 0, 1);
 
 	struct sigaction new_actn, old_actn;
     new_actn.sa_handler = SIG_IGN;
