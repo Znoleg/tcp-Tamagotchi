@@ -2,7 +2,9 @@
 
 void error(string msg)
 {
-    error(msg.c_str());
+    char m[msg.size()];
+    strcpy(m, msg.c_str());
+    error(m);
     exit(1);
 }
 
@@ -21,13 +23,17 @@ vector<string> SplitString(const string& str, const string& delim)
     return tokens;
 }
 
-bool safesend(int sock, void* packet, size_t packet_size)
+bool safesend(int sock, void* packet, ssize_t packet_size)
 {
-    if (send(sock, packet, packet_size, 0) <= packet_size) return false;
+    ssize_t size = send(sock, packet, packet_size, MSG_NOSIGNAL);
+    if (size < packet_size) 
+    {
+        return false;
+    }
     return true;
 }
 
-bool saferecv(int sock, void* packet, size_t max_packet_size, size_t min_packet_size)
+bool saferecv(int sock, void* packet, ssize_t max_packet_size, ssize_t min_packet_size)
 {
     if (recv(sock, packet, max_packet_size, 0) < min_packet_size) return false;
 
@@ -49,4 +55,20 @@ int SockConnection::CreateSocket()
     if (setsockopt(_sockfd, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse)) < 0)
         error("Server error: error on setsockopt");
     return _sockfd;
+}
+
+void SockConnection::TurnOffPipeSig()
+{
+    struct sigaction new_actn, old_actn;
+    new_actn.sa_handler = SIG_IGN;
+    sigemptyset(&new_actn.sa_mask);
+    new_actn.sa_flags = 0;
+    sigaction(SIGPIPE, &new_actn, &old_actn);
+
+    _oldPipeActn = old_actn;
+}
+
+void SockConnection::RestorePipeSig()
+{
+    sigaction(SIGPIPE, &_oldPipeActn, NULL);
 }

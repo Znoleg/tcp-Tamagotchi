@@ -45,4 +45,10 @@
         <file>images/Food/Mushroom.png</file>
         <file>images/Food/Sushi.png</file>
     </qresource>
+    <qresource prefix="/images/Icons">
+        <file>images/Icons/Cure.png</file>
+        <file>images/Icons/Game.png</file>
+        <file>images/Icons/Sleep.png</file>
+        <file>images/Icons/Toilet.png</file>
+    </qresource>
 </RCC>

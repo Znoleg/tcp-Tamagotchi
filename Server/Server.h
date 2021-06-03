@@ -26,8 +26,10 @@ public:
 	void StartListening(unsigned maxListeners);
 	bool TryLogin(const User& user, const int client_fd, ClientData& logged);
 	void Register(const User& owner, const string tamaName, const TamaTypes tamType, const int client_fd);
-	void HandleClientDisconnect(int clientSock);
+	bool HandleClientDisconnect(int clientSock);
+	friend void NotifyAndExit(int signum);
 	void AddClientHandler(pair<int, pthread_t> pthreadHandler);
+	size_t GetConnectedCount() const;
 	static Server* GetInstance();
 	~Server();
 private:
@@ -39,12 +41,13 @@ private:
 	friend void* StartTamasSimulationThread(void*);
 	friend void* HandleServerCmds(void*);
 	friend void* HandleClientReqs(void*);
-	void SendStats(const ClientData& client) const;
+	void SendStats(const ClientData& client);
 	void HandleRequest(void*);
 	int TryFindUser(const User& user, bool& res) const;
 	int TryFindUser(const int clientFd, bool& res) const;
 	vector<ClientData> _users;
 	string _fileName = "./temp/serverdata.txt";
+	double _tamagMultiplier = 1;
 	map<int, pthread_t> _clientHandlers;
 	static Server* _instance;
 };

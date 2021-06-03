@@ -26,6 +26,9 @@ public:
     void UpdateStatLables(double health, double hunger, double hapiness, double piss, double sleepness);
     void SetTamaType(const TamaTypes type);
     void SetName(string name);
+    void HandleDisconnection();
+    void HandleTamaDeath();
+    void SetTamaMsg(string msg);
 
 private:
     Ui::Tamagotchi *ui;
@@ -41,6 +44,7 @@ private:
     void LogWarning(const QString& text);
     void SetTamaPicture(TamaFeelLevel& level);
     void SetTamaPicture(QString path, bool usingResourcePath = true);
+    void SetActionButtons(bool status);
 
 private slots:
     void TryLogin();

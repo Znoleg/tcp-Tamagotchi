@@ -36,7 +36,12 @@ hostent* get_host_by_ip(string ipstr = "127.0.0.1")
     return hp;
 }
 
-sockaddr_in Client::ConnectToServer(in_port_t port, hostent* server)
+Client::Client()
+{
+    TurnOffPipeSig();
+}
+
+bool Client::ConnectToServer(in_port_t port, hostent* server)
 {
     if (_sockfd == 0) error("Client error: create socket before trying connect!"); 
     _port = port;
@@ -46,24 +51,28 @@ sockaddr_in Client::ConnectToServer(in_port_t port, hostent* server)
     serv_addr.sin_family = AF_INET; // TCP
     serv_addr.sin_port = htons(port);
 
+    bool connectStatus = (connect(_sockfd, (sockaddr*)&serv_addr, sizeof(serv_addr)) >= 0);
     const int failConnectDelay = 10;
-    while (connect(_sockfd, (sockaddr*)&serv_addr, sizeof(serv_addr)) < 0)
+    for (int i = 0; !connectStatus && i < 5; i++)
     {
+        connectStatus = (connect(_sockfd, (sockaddr*)&serv_addr, sizeof(serv_addr)) >= 0);
         printf("Error connecting to server! Retrying after %i seconds...\n", failConnectDelay);
         sleep(failConnectDelay);
     }
-    return serv_addr;
+    return connectStatus;
 }
 
-void Client::HandleServerDisconnection()
+void Client::HandleServerDisconnection() const
 {
-
+    write(STDOUT_FILENO, "Lost connection with server!\n", 29);
+    tamagWindow->HandleDisconnection();
 }
 
 void Client::NotifyDisconnection()
 {
     char err = char(CONNECT_LOST);
     send(_sockfd, &err, sizeof(char), 0);
+    close(_sockfd);
 }
 
 bool Client::TryServerLogin(const User& user)
@@ -74,23 +83,38 @@ bool Client::TryServerLogin(const User& user)
     bool login_result;
     strcpy(requestBuf, request.c_str());
     if (!safesend(_sockfd, &req, sizeof(ServerReq)))
+    {
         HandleServerDisconnection();
-    if (!safesend(_sockfd, requestBuf, strlen(requestBuf) * sizeof(char))) // sending request
+        return false;
+    }
+    if (!safesend(_sockfd, requestBuf, strlen(requestBuf) * sizeof(char)))
+    {
         HandleServerDisconnection();
+        return false;
+    }
     if (!saferecv(_sockfd, &login_result, sizeof(bool)))
+    {
         HandleServerDisconnection();
+        return false;
+    }
 
     if (!login_result) return false;
 
     TamaTypes type;
     if (!saferecv(_sockfd, &type, sizeof(type)))
+    {
         HandleServerDisconnection();
+        return false;
+    }
 
     tamagWindow->SetTamaType(type);
 
     char namebuf[64];
     if (!saferecv(_sockfd, namebuf, 64ul, 1))
+    {
         HandleServerDisconnection();
+        return false;
+    }
     string n(namebuf, 1);
     size_t namesize = stoi(n);
     string name_str(namebuf + 1, namesize);
@@ -102,19 +126,32 @@ bool Client::TryServerLogin(const User& user)
     return true;
 }
 
-void Client::ServerRegister(const User& user, const string& tamaName, const TamaTypes type)
+void Client::ServerRegister(const User& user, const string& tamaName, TamaTypes type)
 {
     ServerReq req = ServerReq::Register;
     string request = user.GetCredinals() + ' ' + tamaName; // creating Register request
     char buf[128];
     strcpy(buf, request.c_str());
 
-    send(_sockfd, &req, sizeof(ServerReq), 0);
-    send(_sockfd, buf, strlen(buf) * sizeof(char), 0); // sending request
+    if (!safesend(_sockfd, &req, sizeof(ServerReq)))
+    {
+        HandleServerDisconnection();
+        return;
+    }
+    if (!safesend(_sockfd, buf, strlen(buf) * sizeof(char)))
+    {
+        HandleServerDisconnection();
+        return;
+    }
     sleep(1);
-    send(_sockfd, &type, sizeof(TamaTypes), 0); // sending tamType
+    if (!safesend(_sockfd, &type, sizeof(TamaTypes))) // sending tamType
+    {
+        HandleServerDisconnection();
+        return;
+    }
+
     tamagWindow->SetTamaType(type);
-    
+
     pthread_t tamStatChangeThr;
     pthread_create(&tamStatChangeThr, NULL, GetTamagStatChangeThread, (void**)this);
     _currentUser = user;
@@ -126,23 +163,66 @@ void Client::SendUserCredinals() const
     char buff[credinals.size()];
     strcpy(buff, credinals.c_str());
 
-    send(_sockfd, buff, strlen(buff) * sizeof(char), 0);
+    if (!safesend(_sockfd, buff, strlen(buff) * sizeof(char)))
+    {
+        HandleServerDisconnection();
+    }
 }
 
 void Client::SendCureRequest() const
 {
     ServerReq req = ServerReq::TamagCure;
-    send(_sockfd, &req, sizeof(ServerReq), 0);
+    if (!safesend(_sockfd, &req, sizeof(ServerReq)))
+    {
+        HandleServerDisconnection();
+        return;
+    }
     SendUserCredinals();
 }
 
 void Client::SendEatRequest(FoodType type) const
 {
     ServerReq req = ServerReq::TamagEat;
-    send(_sockfd, &req, sizeof(ServerReq), 0);
+    if (!safesend(_sockfd, &req, sizeof(ServerReq)))
+    {
+        HandleServerDisconnection();
+        return;
+    }
     SendUserCredinals();
     sleep(1);
-    send(_sockfd, &type, sizeof(FoodType), 0);
+    if (!safesend(_sockfd, &type, sizeof(FoodType)))
+    {
+        HandleServerDisconnection();
+        return;
+    }
+
+    Pleasure pleasure;
+    if (!saferecv(_sockfd, &pleasure, sizeof(Pleasure), sizeof(Pleasure)))
+    {
+        HandleServerDisconnection();
+        return;
+    }
+
+    string msg;
+    switch (pleasure)
+    {
+    case Pleasure::Bad:
+        msg = "Your pet didn't like this! :(";
+        break;
+
+    case Pleasure::OK:
+        msg = "Your pet is OK with that.";
+        break;
+
+    case Pleasure::Good:
+        msg = "Your pet liked this! :)";
+        break;
+
+    default:
+        break;
+    }
+
+    tamagWindow->SetTamaMsg(msg);
 }
 
 void Client::SendSleepRequest() const
@@ -166,21 +246,49 @@ void Client::SendPissRequest() const
 
 void Client::HandleTamStats(const double* stats) const
 {
-    tamagWindow->UpdateStatLables(stats[0], stats[1], stats[2], stats[3], stats[4]);
+    tamagWindow->UpdateStatLables(stats[1], stats[2], stats[3], stats[4], stats[5]);
 }
 
 void* GetTamagStatChangeThread(void* arg)
 {
     Client* client = static_cast<Client*>(arg);
     int sock = client->GetSockFd();
-    size_t size = STATS_CNT * sizeof(double);
+    size_t size = (STATS_CNT + 1) * sizeof(double);
     while (true)
     {
-        double stats[STATS_CNT];
-        if (recv(sock, stats, size, 0) <= 0) continue;
+        double stats[STATS_CNT + 1];
+        if (!saferecv(sock, stats, size, size))
+        {
+            client->HandleServerDisconnection();
+            pthread_exit(0);
+        }
 
         client->HandleTamStats(stats);
+        if (stats[0] == 0)
+        {
+            tamagWindow->HandleTamaDeath();
+            pthread_exit(0);
+        }
     }
+}
+
+bool ConnectByIpStr(Client* client, string adr_str, bool showWindow)
+{
+    size_t index = adr_str.find(":");
+    if (index == string::npos)
+    {
+        printf("Please provide adress in ip:port format!\n");
+        return false;
+    }
+
+    string ip_str(adr_str, 0, index);
+    string port_str(adr_str.begin() + index + 1, adr_str.end());
+
+    hostent *server = get_host_by_ip(ip_str);
+    in_port_t port = stoi(port_str);
+
+    if (showWindow) tamagWindow->show();
+    return client->ConnectToServer(port, server);
 }
 
 void* CommandsThread(void* arg)
@@ -190,50 +298,51 @@ void* CommandsThread(void* arg)
     {
         char cmd_buf[32];
         scanf("%s", cmd_buf);
-        if (strcmp(cmd_buf, "connect"))
+        if (strcmp(cmd_buf, "connect") == 0)
         {
             char ip_buf[32];
             scanf("%s", ip_buf);
 
-            char ip[22];
-            char port_buf[10];
-            char *token = strtok(ip_buf, ":");
-            if (token == NULL)
+            if (!ConnectByIpStr(client, ip_buf, true))
             {
-                printf("Please provide adress in ip:port format!\n");
+                printf("Error connection to server %s", ip_buf);
                 continue;
             }
-
-            strcpy(port_buf, token + 1);
-            strncpy(ip, ip_buf, strlen(ip_buf) - strlen(port_buf) - 1);
-            hostent *server = get_host_by_ip(ip);
-            in_port_t port = atoi(port_buf);
-            client->ConnectToServer(port, server);
         }
     }
 }
 
 int main(int argc, char* argv[])
 {
-    in_port_t portno;
-    hostent *server;
-    if (argc >= 3) // Hostname & portno provided as args
-    {
-//        string hostName = argv[1];
-//        server = GetHostByName(hostName);
-//        if (server == NULL) error("Console argument error: no " + hostName + " host!");
-//        portno = atoi(argv[2]);
-    }
-    else // Not provided - using standart
-    {
-        server = get_host_by_ip();
-        portno = STD_PORT;
-    }
-
     auto client = new Client();
     client->CreateSocket();
-    client->ConnectToServer(portno, server);
+    bool connected = false;
 
+    if (argc >= 2) // Hostname & portno provided as args
+    {
+        char ip_buf[32];
+        string ip = argv[1];
+        strcpy(ip_buf, ip.c_str());
+        if (!ConnectByIpStr(client, ip_buf, false))
+        {
+            printf("Error connecting to server %s\n", ip_buf);
+        }
+        else connected = true;
+    }
+    else
+    {
+        char ip_buf[32];
+        string ip = "127.0.0.1:2050";
+        strcpy(ip_buf, ip.c_str());
+        if (!ConnectByIpStr(client, ip_buf, false))
+        {
+            printf("Error connecting to server %s\n", "127.0.0.1:2050");
+        }
+        else connected = true;
+    }
+
+    pthread_t cmd_thr;
+    pthread_create(&cmd_thr, 0, CommandsThread, (void*)&client);
 
     QApplication a(argc, argv);
 
@@ -247,7 +356,7 @@ int main(int argc, char* argv[])
         }
     }
     Tamagotchi w(client);
-    w.show();
     tamagWindow = &w;
+    if (connected) w.show();
     return a.exec();
 }

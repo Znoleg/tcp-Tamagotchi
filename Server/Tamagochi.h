@@ -7,11 +7,6 @@ enum class TamStats
 	Health, Food, Hapiness, Piss, Sleep
 };
 
-enum class Pleasure
-{
-	Good, OK, Bad 
-};
-
 typedef pair<FoodType, Pleasure> FoodPleasure;
 
 class TamagochiController
@@ -19,8 +14,8 @@ class TamagochiController
 	friend class Server;
 	void virtual SetStatValue(TamStats stat, double value) = 0;
     bool virtual ChangeStatValue(TamStats stat, double delta) = 0;
-	void virtual DoLifeIteration(bool logged) = 0;
-	void virtual FeedAnimal(FoodType type) = 0;
+	void virtual DoLifeIteration(bool logged, double multiplier) = 0;
+	Pleasure virtual FeedAnimal(FoodType type) = 0;
 	void virtual PlayWithAnimal() = 0;
 	void virtual CureAnimal() = 0;
 	void virtual SleepWithAnimal() = 0;
@@ -37,8 +32,8 @@ public:
 	double* GetStats() const;
 	void SetStatValue(TamStats stat, double value) override;
     bool ChangeStatValue(TamStats stat, double delta) override;
-	void virtual DoLifeIteration(bool logged) override;
-	void virtual FeedAnimal(FoodType) override;
+	void virtual DoLifeIteration(bool logged, double multiplier) override;
+	Pleasure virtual FeedAnimal(FoodType) override;
 	void virtual PlayWithAnimal() override;
 	void virtual CureAnimal() override;
 	void virtual SleepWithAnimal() override;

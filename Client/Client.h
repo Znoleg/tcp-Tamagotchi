@@ -11,12 +11,12 @@ struct User;
 class Client : public SockConnection
 {
 public:
-	Client() {};
-	sockaddr_in ConnectToServer(in_port_t port, hostent* server);
-	void ServerRegister(const User& user, const string& tamaName, const TamaTypes type);
+	Client();
+    bool ConnectToServer(in_port_t port, hostent* server);
+    void ServerRegister(const User& user, const string& tamaName, TamaTypes type);
     bool TryServerLogin(const User& user);
     void HandleTamStats(const double*) const;
-    void HandleServerDisconnection();
+    void HandleServerDisconnection() const;
     void NotifyDisconnection();
 
     void SendUserCredinals() const;

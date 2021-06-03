@@ -10,6 +10,8 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <signal.h>
+#include <string.h>
 
 #define STD_PORT 2050
 #define CONNECT_LOST -1
@@ -18,8 +20,8 @@ using namespace std;
 void error(string msg);
 
 vector<string> SplitString(const string& str, const string& delim);
-bool safesend(int sock, void* packet, size_t packet_size);
-bool saferecv(int sock, void* packet, size_t max_packet_size, size_t min_packet_size = 1);
+bool safesend(int sock, void* packet, ssize_t packet_size);
+bool saferecv(int sock, void* packet, ssize_t max_packet_size, ssize_t min_packet_size = 1);
 
 enum class TamaTypes
 {
@@ -34,6 +36,11 @@ enum class ServerReq
 enum class FoodType
 {
 	Apple, Cucumber, Mushroom, Meat, Cheese, Cake, Fish, Icecream
+};
+
+enum class Pleasure
+{
+	Good, OK, Bad 
 };
 
 struct User
@@ -73,8 +80,11 @@ public:
     int GetSockFd() const;
 	int CreateSocket();
 protected: 
+	void TurnOffPipeSig();
+	void RestorePipeSig();
 	in_port_t _port;
     int _sockfd;
 	sockaddr_in _address;
+	struct sigaction _oldPipeActn;
 };
 

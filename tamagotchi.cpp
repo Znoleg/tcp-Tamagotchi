@@ -33,7 +33,7 @@ Tamagotchi::Tamagotchi(Client* client, QWidget *parent)
     passField = findChild<QLineEdit*>("PassField");
 
     mamCrBtn = findChild<QPushButton*>("MamCreateBtn");
-    zucCrBtn = findChild<QPushButton*>("ZucCreateBtn");
+    zucCrBtn = findChild<QPushButton*>("ZukCreateBtn");
     sekCrBtn = findChild<QPushButton*>("SekCreateBtn");
     tamaNameRegister = findChild<QLineEdit*>("TamaName");
 
@@ -85,6 +85,11 @@ Tamagotchi::~Tamagotchi()
 {
     _client->NotifyDisconnection();
     delete ui;
+}
+
+void Tamagotchi::HandleDisconnection()
+{
+    delete this;
 }
 
 void SetFrameEnable(QFrame* frame, bool status)
@@ -226,6 +231,32 @@ void Tamagotchi::Register(TamaTypes type)
     SetFrameEnable(playFrame, true);
 }
 
+void Tamagotchi::SetActionButtons(bool status)
+{
+    cureBtn->setVisible(status);
+    playBtn->setVisible(status);
+    pissBtn->setVisible(status);
+    sleepBtn->setVisible(status);
+
+    appleBtn->setVisible(status);
+    cheeseBtn->setVisible(status);
+    cucumberBtn->setVisible(status);
+    cakeBtn->setVisible(status);
+    icecreamBtn->setVisible(status);
+    meatBtn->setVisible(status);
+    mushroomBtn->setVisible(status);
+    fishBtn->setVisible(status);
+}
+
+void Tamagotchi::HandleTamaDeath()
+{
+    SetActionButtons(false);
+    tamagMsg->setText(QString("Your pet died! You should have taken better care!"));
+    sleep(5);
+    SetFrameEnable(playFrame, false);
+    SetFrameEnable(loginFrame, true);
+}
+
 /* Tamag Stat Buttons*/
 void Tamagotchi::ChooseFood()
 {
@@ -269,9 +300,18 @@ void Tamagotchi::SetStat(const double statValue, QLabel* label)
     {
         label->setStyleSheet("QLabel { color: red; }");
     }
+    else
+    {
+        label->setStyleSheet("QLabel { color: white; }");
+    }
 }
 
 void Tamagotchi::SetName(string name)
 {
     tamagName->setText(QString::fromStdString(name));
+}
+
+void Tamagotchi::SetTamaMsg(string msg)
+{
+    tamagMsg->setText(QString::fromStdString(msg));
 }

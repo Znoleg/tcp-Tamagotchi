@@ -26,11 +26,16 @@ double* Tamagochi::GetStats() const
 {
     string stats;
     size_t arrSize = _statusValue->size();
-    double* array = new double[arrSize];
-    int i = 0;
+    double* array = new double[arrSize + 1];
+    array[0] = 0;
+    int i = 1;
     for (map<TamStats, double>::iterator it = _statusValue->begin(); it != _statusValue->end(); it++, i++)
     {
         array[i] = it->second;
+        if (it->second <= 0)
+        {
+            array[0] = 1;
+        }
     }
     return array;
 }
@@ -56,7 +61,7 @@ bool Tamagochi::ChangeStatValue(TamStats stat, double delta)
     return it->second > 0;
 }
 
-void Tamagochi::FeedAnimal(FoodType food)
+Pleasure Tamagochi::FeedAnimal(FoodType food)
 {
     const double sleepDelta = -5;
     const double pissDelta = -10;
@@ -84,12 +89,13 @@ void Tamagochi::FeedAnimal(FoodType food)
     default:
         break;
     }
+    return pleasure;
 }
 
-void Tamagochi::DoLifeIteration(bool logged)
+void Tamagochi::DoLifeIteration(bool logged, double multiplier)
 {
-    double delta = -0.02;
-    if (logged) delta = -1;
+    double delta = -0.02 * multiplier;
+    if (logged) delta = -1 * multiplier;
     ChangeStatValue(TamStats::Health, delta);
     ChangeStatValue(TamStats::Food, delta);
     ChangeStatValue(TamStats::Sleep, delta);

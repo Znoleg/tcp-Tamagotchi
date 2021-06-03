@@ -40,6 +40,7 @@ Server::Server()
 	
 	Server::_instance = this;
 
+	//TurnOffPipeSig();
 	LoadData();
 }
 
@@ -113,24 +114,56 @@ bool Server::TryLogin(const User& user, const int client_fd, ClientData& client)
 	return true;
 }
 
-void Server::HandleClientDisconnect(int clientSock)
+bool Server::HandleClientDisconnect(int clientSock)
 {
-	printf("Client %i disconnected!\n", clientSock);
-	fflush(stdout);
-	
 	auto it = _clientHandlers.find(clientSock);
-	//pthread_cancel(it->second);
+	if (it == _clientHandlers.end()) return false;
+	pthread_cancel(it->second);
+	close(it->first);
+
 	bool res;
 	int index = TryFindUser(clientSock, res);
 	_users[index].logged = false;
+
+	_clientHandlers.erase(it);
+
+	printf("Client %i disconnected!\n", clientSock);
+	fflush(stdout);	
+	return true;
 }
 
-void Server::SendStats(const ClientData& client) const
+void NotifyAndExit(int signum)
 {
+	write(STDOUT_FILENO, "Server is about disconnection!\n", 31);
+
+	auto server = Server::GetInstance();
+	auto clientHandlers = server->_clientHandlers;
+	for (auto it = clientHandlers.begin(); it != clientHandlers.end(); it++)
+	{
+		char code = (char)CONNECT_LOST;
+		send(it->first, &code, sizeof(char), 0);
+	}
+	close(server->_sockfd);
+	exit(0);
+}
+
+void Server::SendStats(const ClientData& client)
+{
+	bool died = false;
 	double* stats = client.tamag->GetStats();
-	size_t size = client.tamag->GetStatsCount() * sizeof(double);
-	send(client.clientFd, stats, size, 0);
-	printf("Sended stats to %i client \n", client.clientFd);
+	int fd = client.clientFd;
+	size_t size = (client.tamag->GetStatsCount() + 1) * sizeof(double);
+	if (!safesend(fd, stats, size))
+		HandleClientDisconnect(fd);
+	else printf("Sended stats to %i client \n", fd);
+
+	if (stats[0] == 0)
+	{
+		printf("Player %i died! Erasing him...\n", fd);
+		bool res;
+		int index = TryFindUser(client.user, res);
+		_users.erase(_users.begin() + index);
+	}
 }
 
 void* StartTamasSimulationThread(void*)
@@ -141,14 +174,13 @@ void* StartTamasSimulationThread(void*)
 		for (ClientData clientData : server->_users)
 		{
 			bool logged = clientData.logged;
-			clientData.tamag->DoLifeIteration(logged);
+			clientData.tamag->DoLifeIteration(logged, server->_tamagMultiplier);
 			if (logged) 
 				server->SendStats(clientData);
 		}
 		sleep(10);
 	}
 }
-
 
 void Server::SaveData()
 {
@@ -188,8 +220,6 @@ void Server::LoadData()
 		_users.push_back({0, user, tama, 0});
 	}
 }
-
-
 
 int Server::TryFindUser(const User& user, bool& res) const
 {
@@ -249,7 +279,11 @@ void* HandleClientReqs(void* clientFdPtr)
 				double* stats = new double[5];
 				ClientData logged_client;
 				bool result = server->TryLogin(user, clientFd, logged_client); 
-				send(clientFd, &result, sizeof(bool), 0);
+				if (!safesend(clientFd, &result, sizeof(bool)))
+				{
+					server->HandleClientDisconnect(clientFd);
+					pthread_exit(0);
+				}
 				
 				if (result) 
 				{
@@ -260,8 +294,16 @@ void* HandleClientReqs(void* clientFdPtr)
 					sprintf(name_buf, "%i", size);
 					strcpy(name_buf + 1, name.c_str());
 					
-					send(clientFd, &tamaType, sizeof(tamaType), 0);
-					send(clientFd, name_buf, strlen(name_buf) * sizeof(char), 0);
+					if (!safesend(clientFd, &tamaType, sizeof(tamaType)))
+					{
+						server->HandleClientDisconnect(clientFd);
+						pthread_exit(0);
+					}
+					if (!safesend(clientFd, name_buf, strlen(name_buf) * sizeof(char)))
+					{
+						server->HandleClientDisconnect(clientFd);
+						pthread_exit(0);
+					}
 					server->SendStats(logged_client);
 				}
 			}
@@ -294,7 +336,13 @@ void* HandleClientReqs(void* clientFdPtr)
 						server->HandleClientDisconnect(clientFd);
 						pthread_exit(0);
 					}
-					server->_users[index].tamag->FeedAnimal(type);
+					
+					Pleasure pleasure = server->_users[index].tamag->FeedAnimal(type);
+					if (!safesend(clientFd, &pleasure, sizeof(Pleasure)))
+					{
+						server->HandleClientDisconnect(clientFd);
+						pthread_exit(0);
+					}
 				}
 				else if (request == ServerReq::TamagPlay)
 				{
@@ -317,14 +365,44 @@ void* HandleClientReqs(void* clientFdPtr)
     return NULL;
 }
 
+size_t Server::GetConnectedCount() const
+{
+	return _clientHandlers.size();
+}
+
 void* HandleServerCmds(void*)
 {
+	auto server = Server::GetInstance();
 	while (true)
 	{
-		int ch = getchar();
-		if (ch == 'x')
+		char cmd[32];
+		scanf("%s", cmd);
+		if (strcmp(cmd, "kick") == 0)
 		{
-			Server::GetInstance()->SaveData();
+			int kick_sock;
+			scanf("%i", &kick_sock);
+			if (!server->HandleClientDisconnect(kick_sock))
+			{
+				printf("Client not found!\n");
+				continue;
+			}
+		}
+		else if (strcmp(cmd, "setmultiplier") == 0)
+		{
+			const double minMultip = 0.1;
+			double multip;
+			scanf("%lf", &multip);
+			if (multip < minMultip)
+			{
+				printf("Multiplier can't be less then %lf\n", minMultip);
+				continue;
+			}
+			server->_tamagMultiplier = multip;
+			scanf("Multiplier changed to %lf", &multip);
+		}
+		else if (strcmp(cmd, "exit") == 0)
+		{
+			NotifyAndExit(0);
 		}
 	}
 }
@@ -332,32 +410,42 @@ void* HandleServerCmds(void*)
 int main(int argc, char* argv[])
 {
 	/* Port definition */
-   in_port_t portno = STD_PORT;
-   if (argc == 2)
-   {
+   	in_port_t portno = STD_PORT;
+   	if (argc == 2)
+   	{
        portno = atoi(argv[1]);
-   }
+   	}
 	/* */
+
+	struct sigaction new_actn, old_actn;
+    new_actn.sa_handler = SIG_IGN;
+    sigemptyset(&new_actn.sa_mask);
+    new_actn.sa_flags = 0;
+    sigaction(SIGPIPE, &new_actn, &old_actn);
     
 	auto server = new Server();
 	int sockfd = server->CreateSocket();
 	sockaddr_in serv_addr = server->CreateConnection(portno);
 	server->StartListening(MAX_CLIENTS);
 
+	struct sigaction sa;
+	sa.sa_handler = NotifyAndExit;
+	sigaction(SIGINT, &sa, NULL);
+	sigaction(SIGTERM, &sa, NULL);
+
 	int newsockfd;
 	sockaddr_in cli_addr;
 	socklen_t clilen;
-   clilen = sizeof(cli_addr);
+   	clilen = sizeof(cli_addr);
 
-   char buf[256];
+   	char buf[256];
 	pthread_t srvCmdThrd;
 	pthread_create(&srvCmdThrd, NULL, HandleServerCmds, NULL);
 	pthread_t simulation;
 	pthread_create(&simulation, NULL, StartTamasSimulationThread, NULL);
-	//pthread_join(srvCmdThrd, NULL);
-   int clientId = 0;
-   while (clientId < MAX_CLIENTS)
-   {
+   	int clientId = 0;
+   	while (clientId < MAX_CLIENTS)
+   	{
     	newsockfd = accept(sockfd, (sockaddr*)&cli_addr, &clilen);
     	if (newsockfd < 0) error("Error on accept\n");
 		printf("Client connected! ID: %i, FD: %i\n", clientId, newsockfd);
@@ -365,7 +453,7 @@ int main(int argc, char* argv[])
     	if (pthread_create(&threadId, NULL, HandleClientReqs, (void**)&newsockfd) < 0) error("error creating thread\n");
 		server->AddClientHandler(pair<int, pthread_t>(newsockfd, threadId));
 
-    	pthread_join(threadId, NULL);
+    	//pthread_join(threadId, NULL);
     	clientId++;
-   }
+   	}
 }
