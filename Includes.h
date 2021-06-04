@@ -19,12 +19,8 @@
 using namespace std;
 
 void error(string msg);
-
-extern sem_t send_sem, recv_sem;
-
 vector<string> SplitString(const string& str, const string& delim);
-bool safesend(int sock, void* packet, ssize_t packet_size);
-bool saferecv(int sock, void* packet, ssize_t max_packet_size, ssize_t min_packet_size = 1);
+
 
 enum class TamaTypes
 {
@@ -80,14 +76,18 @@ struct User
 class SockConnection
 {
 public:
+	SockConnection();
+	~SockConnection();
     int GetSockFd() const;
 	int CreateSocket();
+	bool safesend(int sock, void* packet, ssize_t packet_size);
+	bool saferecv(int sock, void* packet, ssize_t max_packet_size, ssize_t min_packet_size = 1);
 protected: 
 	void TurnOffPipeSig();
 	void RestorePipeSig();
 	in_port_t _port;
     int _sockfd;
 	sockaddr_in _address;
-	struct sigaction _oldPipeActn;
+    struct sigaction _oldPipeActn;
+	sem_t _recvSem, _sendSem;
 };
-

@@ -11,6 +11,7 @@
 
 User registerCache;
 
+Tamagotchi* win;
 void SetFrameEnable(QFrame* frame, bool status);
 
 Tamagotchi::Tamagotchi(Client* client, QWidget *parent)
@@ -79,7 +80,10 @@ Tamagotchi::Tamagotchi(Client* client, QWidget *parent)
     connect(cakeBtn, &QPushButton::released, this, [=](){TamagFeed(FoodType::Cake);});
     connect(fishBtn, &QPushButton::released, this, [=](){TamagFeed(FoodType::Fish);});
     connect(icecreamBtn, &QPushButton::released, this, [=](){TamagFeed(FoodType::Icecream);});
+
+    win = this;
 }
+
 
 Tamagotchi::~Tamagotchi()
 {
@@ -101,17 +105,30 @@ void SetFrameEnable(QFrame* frame, bool status)
 TamaFeelLevel GetFeelLevel(double health, double hunger, double hapiness, double piss, double sleepness)
 {
     if (health <= 0 || hunger <= 0 || hapiness <= 0 || piss <= 0 || sleepness <= 0) return TamaFeelLevel::Died;
-    if (health <= 20 || hunger <= 20 || hapiness <= 20 || piss <= 20 || sleepness <= 20) return TamaFeelLevel::Worst;
+    if (health <= 25 || hunger <= 25 || hapiness <= 25 || piss <= 25 || sleepness <= 25) return TamaFeelLevel::Worst;
 
     double statsCombined = health + hunger + hapiness + piss + sleepness;
     double percent = statsCombined / 500 * 100;
     if (percent <= 25) return TamaFeelLevel::Worst;
     if (percent <= 50) return TamaFeelLevel::Bad;
-    if (percent <= 75) return TamaFeelLevel::Ok;
+    if (percent <= 80) return TamaFeelLevel::Ok;
     return TamaFeelLevel::Good;
 }
 
-void Tamagotchi::SetTamaPicture(TamaFeelLevel& level)
+void* SetProcessPicture(void* arg)
+{
+    QString process = *static_cast<QString*>(arg);
+    win->SetActionButtons(false);
+    QString path = win->_tamaResourcePath + process;
+    QPixmap image(path);
+    win->tamagImage->setPixmap(image);
+    sleep(3);
+    win->tamagImage->setPixmap(win->_currentStatusImage);
+    win->SetActionButtons(true);
+    pthread_exit(0);
+}
+
+QPixmap Tamagotchi::SetTamaPicture(TamaFeelLevel& level)
 {
     QString path = "kkk";
     switch (level)
@@ -142,9 +159,10 @@ void Tamagotchi::SetTamaPicture(TamaFeelLevel& level)
 
     QPixmap pixmap(path);
     tamagImage->setPixmap(pixmap);
+    return pixmap;
 }
 
-void Tamagotchi::SetTamaPicture(QString path, bool usingResourcePath)
+QPixmap Tamagotchi::SetTamaPicture(QString path, bool usingResourcePath)
 {
     QString finalPath;
     if (usingResourcePath) finalPath = _tamaResourcePath + path;
@@ -152,6 +170,7 @@ void Tamagotchi::SetTamaPicture(QString path, bool usingResourcePath)
 
     QPixmap image(finalPath);
     tamagImage->setPixmap(image);
+    return image;
 }
 
 void Tamagotchi::UpdateStatLables(double health, double hunger, double hapiness, double piss, double sleepness)
@@ -161,7 +180,7 @@ void Tamagotchi::UpdateStatLables(double health, double hunger, double hapiness,
     {
 
     }
-    SetTamaPicture(level);
+    _currentStatusImage = SetTamaPicture(level);
 
     SetStat(health, healthCnt);
     SetStat(hunger, hungerCnt);
@@ -263,28 +282,36 @@ void Tamagotchi::ChooseFood()
 
 }
 
-void Tamagotchi::TamagFeed(FoodType type) const
+void Tamagotchi::TamagFeed(FoodType type)
 {
+    //SetProcessPicture("Eating.png");
     _client->SendEatRequest(type);
 }
 
-void Tamagotchi::TamagCure() const
+void Tamagotchi::TamagCure()
 {
+    //pthread_t thr;
+//    QString act = "Cure.png";
+//    pthread_create(&thr, 0, SetProcessPicture, (void**)&act);
+//    pthread_join(thr, 0);
     _client->SendCureRequest();
 }
 
-void Tamagotchi::TamagPlay() const
+void Tamagotchi::TamagPlay()
 {
+    //SetProcessPicture("Walking.png");
     _client->SendPlayRequest();
 }
 
-void Tamagotchi::TamagSleep() const
+void Tamagotchi::TamagSleep()
 {
+    //SetProcessPicture("Sleeping.png");
     _client->SendSleepRequest();
 }
 
-void Tamagotchi::TamagPiss() const
+void Tamagotchi::TamagPiss()
 {
+    //SetProcessPicture("Pissing.png");
     _client->SendPissRequest();
 }
 

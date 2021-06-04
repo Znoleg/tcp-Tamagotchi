@@ -16,15 +16,15 @@ public:
     void ServerRegister(const User& user, const string& tamaName, TamaTypes type);
     bool TryServerLogin(const User& user);
     void HandleTamStats(const double*) const;
-    void HandleServerDisconnection() const;
+    void HandleServerDisconnection();
     void NotifyDisconnection();
 
-    void SendUserCredinals() const;
-	void SendCureRequest() const;	
-	void SendEatRequest(FoodType type) const;
-	void SendSleepRequest() const;
-    void SendPlayRequest() const;
-	void SendPissRequest() const;
+    void SendUserCredinals();
+    void SendCureRequest();
+    void SendEatRequest(FoodType type);
+    void SendSleepRequest();
+    void SendPlayRequest();
+    void SendPissRequest();
 
 private:
     friend void* GetTamagStatChangeThread(void*);

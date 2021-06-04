@@ -11,7 +11,6 @@
 #include <termios.h>
 
 Server* Server::_instance = nullptr;
-sem_t send_sem, recv_sem;
 bool lock;
 
 Tamagochi* GetTamagochiUsingType(const string& name, const TamaTypes type)
@@ -263,7 +262,7 @@ void* HandleClientReqs(void* clientFdPtr)
 	ServerReq request;
     while (true) // waiting for client requests
 	{
-		if (!saferecv(clientFd, &request, sizeof(ServerReq), sizeof(ServerReq)))
+		if (!server->saferecv(clientFd, &request, sizeof(ServerReq), sizeof(ServerReq)))
 		{
 			server->HandleClientDisconnect(clientFd);
 			pthread_exit(0);
@@ -271,7 +270,7 @@ void* HandleClientReqs(void* clientFdPtr)
 		if (true)
 		{
 			char requestStr[128];
-			if (!saferecv(clientFd, requestStr, 127, 1))
+			if (!server->saferecv(clientFd, requestStr, 127, 1))
 			{
 				server->HandleClientDisconnect(clientFd);
 				pthread_exit(0);
@@ -285,7 +284,7 @@ void* HandleClientReqs(void* clientFdPtr)
 				double* stats = new double[5];
 				ClientData logged_client;
 				bool result = server->TryLogin(user, clientFd, logged_client); 
-				if (!safesend(clientFd, &result, sizeof(bool)))
+				if (!server->safesend(clientFd, &result, sizeof(bool)))
 				{
 					server->HandleClientDisconnect(clientFd);
 					pthread_exit(0);
@@ -300,12 +299,12 @@ void* HandleClientReqs(void* clientFdPtr)
 					sprintf(name_buf, "%i", size);
 					strcpy(name_buf + 1, name.c_str());
 					
-					if (!safesend(clientFd, &tamaType, sizeof(tamaType)))
+					if (!server->safesend(clientFd, &tamaType, sizeof(tamaType)))
 					{
 						server->HandleClientDisconnect(clientFd);
 						pthread_exit(0);
 					}
-					if (!safesend(clientFd, name_buf, strlen(name_buf) * sizeof(char)))
+					if (!server->safesend(clientFd, name_buf, strlen(name_buf) * sizeof(char)))
 					{
 						server->HandleClientDisconnect(clientFd);
 						pthread_exit(0);
@@ -317,7 +316,7 @@ void* HandleClientReqs(void* clientFdPtr)
 			{
 				string tamaName = splitedReq[2]; // splitting request
 				TamaTypes type;
-				if (!saferecv(clientFd, &type, sizeof(TamaTypes), sizeof(TamaTypes)))
+				if (!server->saferecv(clientFd, &type, sizeof(TamaTypes), sizeof(TamaTypes)))
 				{
 					server->HandleClientDisconnect(clientFd);
 					pthread_exit(0);
@@ -337,19 +336,18 @@ void* HandleClientReqs(void* clientFdPtr)
 				else if (request == ServerReq::TamagEat)
 				{
 					FoodType type;
-					if (!saferecv(clientFd, &type, sizeof(FoodType), sizeof(FoodType)))
+					if (!server->saferecv(clientFd, &type, sizeof(FoodType), sizeof(FoodType)))
 					{
 						server->HandleClientDisconnect(clientFd);
 						pthread_exit(0);
 					}
 					
 					Pleasure pleasure = server->_users[index].tamag->FeedAnimal(type);
-					if (!safesend(clientFd, &pleasure, sizeof(Pleasure)))
-					{
-						server->HandleClientDisconnect(clientFd);
-						pthread_exit(0);
-					}
-					sleep(1);
+					// if (!server->safesend(clientFd, &pleasure, sizeof(Pleasure)))
+					// {
+					// 	server->HandleClientDisconnect(clientFd);
+					// 	pthread_exit(0);
+					// }
 				}
 				else if (request == ServerReq::TamagPlay)
 				{
@@ -411,6 +409,10 @@ void* HandleServerCmds(void*)
 		{
 			server->SaveData();
 		}
+		else if (strcmp(cmd, "help") == 0)
+		{
+			printf("\n\nkick *client_fd* - disconnect provided client\nsetmultiplier *mult* - sets stat decreasing multiplier \nsave - force save users to file\nhelp - shows help\nexit - exits the server\n\n");
+		}
 		else if (strcmp(cmd, "exit") == 0)
 		{
 			NotifyAndExit(0);
@@ -427,9 +429,6 @@ int main(int argc, char* argv[])
        portno = atoi(argv[1]);
    	}
 	/* */
-
-	sem_init(&recv_sem, 0, 1);
-	sem_init(&send_sem, 0, 1);
 
 	struct sigaction new_actn, old_actn;
     new_actn.sa_handler = SIG_IGN;

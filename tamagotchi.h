@@ -40,11 +40,13 @@ private:
     QPushButton* loginBtn, *regBtn, *mamCrBtn, *zucCrBtn, *sekCrBtn, *cureBtn, *playBtn, *pissBtn, *sleepBtn;
     QPushButton* appleBtn, *cucumberBtn, *mushroomBtn, *meatBtn, *cheeseBtn, *cakeBtn, *fishBtn, *icecreamBtn;
     QLineEdit* loginField, *passField, *tamaNameRegister;
+    QPixmap _currentStatusImage;
 
     void LogWarning(const QString& text);
-    void SetTamaPicture(TamaFeelLevel& level);
-    void SetTamaPicture(QString path, bool usingResourcePath = true);
+    QPixmap SetTamaPicture(TamaFeelLevel& level);
+    QPixmap SetTamaPicture(QString path, bool usingResourcePath = true);
     void SetActionButtons(bool status);
+    friend void* SetProcessPicture(void* arg);
 
 private slots:
     void TryLogin();
@@ -53,10 +55,10 @@ private slots:
     void SetStat(const double statValue, QLabel* label);
 
     void ChooseFood();
-    void TamagFeed(FoodType type) const;
-    void TamagCure() const;
-    void TamagSleep() const;
-    void TamagPlay() const;
-    void TamagPiss() const;
+    void TamagFeed(FoodType type);
+    void TamagCure();
+    void TamagSleep();
+    void TamagPlay();
+    void TamagPiss();
 };
 #endif // TAMAGOTCHI_H

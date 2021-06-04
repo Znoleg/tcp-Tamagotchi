@@ -11,10 +11,8 @@
 #include <iostream>
 
 void* GetTamagStatChangeThread(void* arg);
-sem_t send_sem, recv_sem;
 
 Tamagotchi* tamagWindow;
-
 #define STATS_CNT 5
 
 vector<double> SplitStringToNumbers(const string& str, const string& delim)
@@ -37,7 +35,7 @@ hostent* get_host_by_ip(string ipstr = "127.0.0.1")
     return hp;
 }
 
-Client::Client()
+Client::Client() : SockConnection()
 {
     TurnOffPipeSig();
 }
@@ -53,8 +51,8 @@ bool Client::ConnectToServer(in_port_t port, hostent* server)
     serv_addr.sin_port = htons(port);
 
     bool connectStatus = (connect(_sockfd, (sockaddr*)&serv_addr, sizeof(serv_addr)) >= 0);
-    const int failConnectDelay = 10;
-    for (int i = 0; !connectStatus && i < 5; i++)
+    const int failConnectDelay = 5;
+    for (int i = 0; !connectStatus && i < 3; i++)
     {
         connectStatus = (connect(_sockfd, (sockaddr*)&serv_addr, sizeof(serv_addr)) >= 0);
         printf("Error connecting to server! Retrying after %i seconds...\n", failConnectDelay);
@@ -63,11 +61,11 @@ bool Client::ConnectToServer(in_port_t port, hostent* server)
     return connectStatus;
 }
 
-void Client::HandleServerDisconnection() const
+void Client::HandleServerDisconnection()
 {
     write(STDOUT_FILENO, "Lost connection with server!\n", 29);
-    sem_destroy(&send_sem);
-    sem_destroy(&recv_sem);
+    sem_destroy(&this->_sendSem);
+    sem_destroy(&this->_recvSem);
     tamagWindow->HandleDisconnection();
 }
 
@@ -160,7 +158,7 @@ void Client::ServerRegister(const User& user, const string& tamaName, TamaTypes 
     _currentUser = user;
 }
 
-void Client::SendUserCredinals() const
+void Client::SendUserCredinals()
 {
     string credinals = _currentUser.GetCredinals();
     char buff[credinals.size()];
@@ -172,7 +170,7 @@ void Client::SendUserCredinals() const
     }
 }
 
-void Client::SendCureRequest() const
+void Client::SendCureRequest()
 {
     ServerReq req = ServerReq::TamagCure;
     if (!safesend(_sockfd, &req, sizeof(ServerReq)))
@@ -183,7 +181,7 @@ void Client::SendCureRequest() const
     SendUserCredinals();
 }
 
-void Client::SendEatRequest(FoodType type) const
+void Client::SendEatRequest(FoodType type)
 {
     ServerReq req = ServerReq::TamagEat;
     if (!safesend(_sockfd, &req, sizeof(ServerReq)))
@@ -199,53 +197,70 @@ void Client::SendEatRequest(FoodType type) const
         return;
     }
 
-    Pleasure pleasure;
-    if (!saferecv(_sockfd, &pleasure, sizeof(Pleasure), sizeof(Pleasure)))
+//    pthread_cancel(cmd_thr);
+
+//    Pleasure pleasure;
+//    if (!saferecv(_sockfd, &pleasure, sizeof(Pleasure), sizeof(Pleasure)))
+//    {
+//        HandleServerDisconnection();
+//        return;
+//    }
+//    lock = false;
+
+//    pthread_create(&cmd_thr, 0, CommandsThread, (void*)this);
+
+//    string msg;
+//    switch (pleasure)
+//    {
+//    case Pleasure::Bad:
+//        msg = "Your pet didn't like this! :(";
+//        break;
+
+//    case Pleasure::OK:
+//        msg = "Your pet is OK with that.";
+//        break;
+
+//    case Pleasure::Good:
+//        msg = "Your pet liked this! :)";
+//        break;
+
+//    default:
+//        break;
+//    }
+
+//    tamagWindow->SetTamaMsg(msg);
+}
+
+void Client::SendSleepRequest()
+{
+    ServerReq req = ServerReq::TamagSleep;
+    if (!safesend(_sockfd, &req, sizeof(ServerReq)))
     {
         HandleServerDisconnection();
         return;
     }
-
-    string msg;
-    switch (pleasure)
-    {
-    case Pleasure::Bad:
-        msg = "Your pet didn't like this! :(";
-        break;
-
-    case Pleasure::OK:
-        msg = "Your pet is OK with that.";
-        break;
-
-    case Pleasure::Good:
-        msg = "Your pet liked this! :)";
-        break;
-
-    default:
-        break;
-    }
-
-    tamagWindow->SetTamaMsg(msg);
-}
-
-void Client::SendSleepRequest() const
-{
-    ServerReq req = ServerReq::TamagSleep;
-    send(_sockfd, &req, sizeof(ServerReq), 0);
     SendUserCredinals();
 }
 
-void Client::SendPlayRequest() const
+void Client::SendPlayRequest()
 {
     ServerReq req = ServerReq::TamagPlay;
-    send(_sockfd, &req, sizeof(ServerReq), 0);
+    if (!safesend(_sockfd, &req, sizeof(ServerReq)))
+    {
+        HandleServerDisconnection();
+        return;
+    }
     SendUserCredinals();
 }
 
-void Client::SendPissRequest() const
+void Client::SendPissRequest()
 {
     ServerReq req = ServerReq::TamagPiss;
-    send(_sockfd, &req, sizeof(ServerReq), 0);
+    if (!safesend(_sockfd, &req, sizeof(ServerReq)))
+    {
+        HandleServerDisconnection();
+        return;
+    }
     SendUserCredinals();
 }
 
@@ -262,7 +277,7 @@ void* GetTamagStatChangeThread(void* arg)
     while (true)
     {
         double stats[STATS_CNT + 1];
-        if (!saferecv(sock, stats, size, size))
+        if (!client->saferecv(sock, stats, size, size))
         {
             client->HandleServerDisconnection();
             pthread_exit(0);
@@ -346,9 +361,6 @@ int main(int argc, char* argv[])
         }
         else connected = true;
     }
-
-    sem_init(&recv_sem, 0, 1);
-    sem_init(&send_sem, 0, 1);
 
     pthread_t cmd_thr;
     pthread_create(&cmd_thr, 0, CommandsThread, (void*)&client);
